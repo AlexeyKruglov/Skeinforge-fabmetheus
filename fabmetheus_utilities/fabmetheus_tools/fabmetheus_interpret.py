@@ -25,7 +25,6 @@ import __init__
 
 from fabmetheus_utilities import archive
 from fabmetheus_utilities import euclidean
-from fabmetheus_utilities import gcodec
 from fabmetheus_utilities import settings
 from skeinforge_application.skeinforge_utilities import skeinforge_polyfile
 from skeinforge_application.skeinforge_utilities import skeinforge_profile
@@ -39,50 +38,50 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getCarving(fileName):
-	"Get carving."
+	"""Get carving."""
 	pluginModule = getInterpretPlugin(fileName)
-	if pluginModule == None:
+	if pluginModule is None:
 		return None
 	return pluginModule.getCarving(fileName)
 
 def getGNUTranslatorGcodeFileTypeTuples():
-	"Get the file type tuples from the translators in the import plugins folder plus gcode."
+	"""Get the file type tuples from the translators in the import plugins folder plus gcode."""
 	fileTypeTuples = getTranslatorFileTypeTuples()
 	fileTypeTuples.append( ('Gcode text files', '*.gcode') )
 	fileTypeTuples.sort()
 	return fileTypeTuples
 
 def getGNUTranslatorFilesUnmodified():
-	"Get the file types from the translators in the import plugins folder."
+	"""Get the file types from the translators in the import plugins folder."""
 	return archive.getFilesWithFileTypesWithoutWords(getImportPluginFileNames())
 
 def getImportPluginFileNames():
-	"Get interpret plugin fileNames."
+	"""Get interpret plugin fileNames."""
 	return archive.getPluginFileNamesFromDirectoryPath( getPluginsDirectoryPath() )
 
 def getInterpretPlugin(fileName):
-	"Get the interpret plugin for the file."
+	"""Get the interpret plugin for the file."""
 	importPluginFileNames = getImportPluginFileNames()
 	for importPluginFileName in importPluginFileNames:
 		fileTypeDot = '.' + importPluginFileName
 		if fileName[ - len(fileTypeDot) : ].lower() == fileTypeDot:
 			importPluginsDirectoryPath = getPluginsDirectoryPath()
 			pluginModule = archive.getModuleWithDirectoryPath( importPluginsDirectoryPath, importPluginFileName )
-			if pluginModule != None:
+			if pluginModule is not None:
 				return pluginModule
 	print('Could not find plugin to handle ' + fileName )
 	return None
 
 def getNewRepository():
-	'Get new repository.'
+	"""Get new repository."""
 	return InterpretRepository()
 
 def getPluginsDirectoryPath():
-	"Get the plugins directory path."
+	"""Get the plugins directory path."""
 	return archive.getAbsoluteFrozenFolderPath( __file__, 'interpret_plugins')
 
 def getTranslatorFileTypeTuples():
-	"Get the file types from the translators in the import plugins folder."
+	"""Get the file types from the translators in the import plugins folder."""
 	importPluginFileNames = getImportPluginFileNames()
 	fileTypeTuples = []
 	for importPluginFileName in importPluginFileNames:
@@ -93,10 +92,10 @@ def getTranslatorFileTypeTuples():
 	return fileTypeTuples
 
 def getWindowAnalyzeFile(fileName):
-	"Get file interpretion."
+	"""Get file interpretion."""
 	startTime = time.time()
 	carving = getCarving(fileName)
-	if carving == None:
+	if carving is None:
 		return None
 	interpretGcode = str( carving )
 	if interpretGcode == '':
@@ -122,7 +121,7 @@ def getWindowAnalyzeFile(fileName):
 	print('Sending the shell command:')
 	print(shellCommand)
 	commandResult = os.system(shellCommand)
-	if commandResult != 0:
+	if commandResult:
 		print('It may be that the system could not find the %s program.' % textProgram )
 		print('If so, try installing the %s program or look for another one, like Open Office which can be found at:' % textProgram )
 		print('http://www.openoffice.org/')
@@ -130,9 +129,9 @@ def getWindowAnalyzeFile(fileName):
 
 
 class InterpretRepository:
-	"A class to handle the interpret settings."
+	"""A class to handle the interpret settings."""
 	def __init__(self):
-		"Set the default settings, execute title & settings fileName."
+		"""Set the default settings, execute title & settings fileName."""
 		skeinforge_profile.addListsToCraftTypeRepository('skeinforge_application.skeinforge_plugins.analyze_plugins.interpret.html', self)
 		self.fileNameInput = settings.FileNameInput().getFromFileName( getGNUTranslatorGcodeFileTypeTuples(), 'Open File for Interpret', self, '')
 		self.activateInterpret = settings.BooleanSetting().getFromValue('Activate Interpret', self, False )
@@ -141,7 +140,7 @@ class InterpretRepository:
 		self.executeTitle = 'Interpret'
 
 	def execute(self):
-		"Write button has been clicked."
+		"""Write button has been clicked."""
 		fileNames = skeinforge_polyfile.getFileOrGcodeDirectory( self.fileNameInput.value, self.fileNameInput.wasCancelled )
 		for fileName in fileNames:
 			getWindowAnalyzeFile(fileName)

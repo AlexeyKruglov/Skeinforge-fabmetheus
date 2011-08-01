@@ -19,18 +19,18 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getNewDerivation(xmlElement):
-	'Get new derivation.'
+	"""Get new derivation."""
 	return CopyDerivation(xmlElement)
 
 def processXMLElement(xmlElement):
-	'Process the xml element.'
+	"""Process the xml element."""
 	processXMLElementByDerivation(None, xmlElement)
 
 def processXMLElementByDerivation(derivation, xmlElement):
-	'Process the xml element by derivation.'
-	if derivation == None:
+	"""Process the xml element by derivation."""
+	if derivation is None:
 		derivation = CopyDerivation(xmlElement)
-	if derivation.target == None:
+	if derivation.target is None:
 		print('Warning, copy could not get target for:')
 		print(xmlElement)
 		return
@@ -45,16 +45,16 @@ def processXMLElementByDerivation(derivation, xmlElement):
 	xmlElement.className = derivation.target.className
 	derivation.target.copyXMLChildren(xmlElement.getIDSuffix(), xmlElement)
 	xmlElement.getXMLProcessor().processXMLElement(xmlElement)
-	if copyMatrix != None and targetMatrix != None:
+	if copyMatrix is not None and targetMatrix is not None:
 		xmlElement.xmlObject.matrix4X4 = copyMatrix.getSelfTimesOther(targetMatrix.tetragrid)
 
 
 class CopyDerivation:
-	"Class to hold copy variables."
+	"""Class to hold copy variables."""
 	def __init__(self, xmlElement):
-		'Set defaults.'
+		"""Set defaults."""
 		self.target = evaluate.getXMLElementByKey('target', xmlElement)
 
 	def __repr__(self):
-		"Get the string representation of this CopyDerivation."
+		"""Get the string representation of this CopyDerivation."""
 		return str(self.__dict__)

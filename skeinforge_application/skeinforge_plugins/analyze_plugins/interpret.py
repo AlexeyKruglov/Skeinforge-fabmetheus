@@ -33,18 +33,18 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getNewRepository():
-	'Get new repository.'
+	"""Get new repository."""
 	return fabmetheus_interpret.InterpretRepository()
 
-def writeOutput( fileName, fileNameSuffix, gcodeText = ''):
-	"Write file interpretation, if activate interpret is selected."
+def writeOutput(fileName, fileNamePenultimate, fileNameSuffix, filePenultimateWritten, gcodeText=''):
+	"""Write file interpretation, if activate interpret is selected."""
 	repository = settings.getReadRepository( getNewRepository() )
 	if repository.activateInterpret.value:
 		fabmetheus_interpret.getWindowAnalyzeFile(fileName)
 
 
 def main():
-	"Display the interpret dialog."
+	"""Display the interpret dialog."""
 	if len(sys.argv) > 1:
 		fabmetheus_interpret.getWindowAnalyzeFile(' '.join(sys.argv[1 :]))
 	else:

@@ -18,12 +18,12 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getNewMouseTool():
-	"Get a new mouse tool."
+	"""Get a new mouse tool."""
 	return ZoomOut()
 
 
 class ZoomOut( zoom_in.ZoomIn ):
-	"The zoom out mouse tool."
+	"""The zoom out mouse tool."""
 	def getMultiplier(self):
-		"Get the scale multiplier."
+		"""Get the scale multiplier."""
 		return 0.5

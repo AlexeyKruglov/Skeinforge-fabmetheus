@@ -27,23 +27,23 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getCraftSequence():
-	"Get the cutting craft sequence."
+	"""Get the cutting craft sequence."""
 	return 'chop preface outset multiply whittle drill lift flow feed home lash fillet limit unpause export'.split()
 
 def getNewRepository():
-	'Get new repository.'
+	"""Get new repository."""
 	return CuttingRepository()
 
 
 class CuttingRepository:
-	"A class to handle the cutting settings."
+	"""A class to handle the cutting settings."""
 	def __init__(self):
-		"Set the default settings, execute title & settings fileName."
+		"""Set the default settings, execute title & settings fileName."""
 		skeinforge_profile.addListsSetCraftProfile( getCraftSequence(), 'end_mill', self, 'skeinforge_plugins.profile_plugins.cutting.html')
 
 
 def main():
-	"Display the export dialog."
+	"""Display the export dialog."""
 	if len(sys.argv) > 1:
 		writeOutput(' '.join(sys.argv[1 :]))
 	else:

@@ -31,14 +31,14 @@ globalOriginalTextString = '<!-- Original XML Text:\n'
 
 
 def getCarving(fileName):
-	'Get a carving for the file using an import plugin.'
+	"""Get a carving for the file using an import plugin."""
 	pluginModule = fabmetheus_interpret.getInterpretPlugin(fileName)
-	if pluginModule == None:
+	if pluginModule is None:
 		return None
 	return pluginModule.getCarving(fileName)
 
 def getCommentElement(xmlElement):
-	'Get a carving for the file using an import plugin.'
+	"""Get a carving for the file using an import plugin."""
 	for child in xmlElement.children:
 		if child.className == 'comment':
 			if child.text.startswith(globalOriginalTextString):
@@ -46,7 +46,7 @@ def getCommentElement(xmlElement):
 	return None
 
 def getSliceDictionary(xmlElement):
-	'Get the metadata slice attribute dictionary.'
+	"""Get the metadata slice attribute dictionary."""
 	for metadataElement in xmlElement.getChildrenWithClassName('metadata'):
 		for child in metadataElement.children:
 			if child.className.lower() == 'slice:layers':
@@ -54,7 +54,7 @@ def getSliceDictionary(xmlElement):
 	return {}
 
 def getSliceXMLElements(xmlElement):
-	'Get the slice elements.'
+	"""Get the slice elements."""
 	gXMLElements = xmlElement.getChildrenWithClassNameRecursively('g')
 	sliceXMLElements = []
 	for gXMLElement in gXMLElements:
@@ -65,7 +65,7 @@ def getSliceXMLElements(xmlElement):
 	return sliceXMLElements
 
 def getSVGByLoopLayers(addLayerTemplateToSVG, carving, rotatedLoopLayers):
-	'Get the svg text.'
+	"""Get the svg text."""
 	if len(rotatedLoopLayers) < 1:
 		return ''
 	decimalPlacesCarried = max(0, 2 - int(math.floor(math.log10(carving.layerThickness))))
@@ -78,11 +78,11 @@ def getSVGByLoopLayers(addLayerTemplateToSVG, carving, rotatedLoopLayers):
 	return svgWriter.getReplacedSVGTemplate(carving.fileName, 'basic', rotatedLoopLayers, carving.getFabmetheusXML())
 
 def getTruncatedRotatedBoundaryLayers(repository, rotatedLoopLayers):
-	'Get the truncated rotated boundary layers.'
+	"""Get the truncated rotated boundary layers."""
 	return rotatedLoopLayers[repository.layersFrom.value : repository.layersTo.value]
 
 def setSVGCarvingCorners(cornerMaximum, cornerMinimum, layerThickness, rotatedLoopLayers):
-	'Parse SVG text and store the layers.'
+	"""Parse SVG text and store the layers."""
 	for rotatedLoopLayer in rotatedLoopLayers:
 		for loop in rotatedLoopLayer.loops:
 			for point in loop:
@@ -95,7 +95,7 @@ def setSVGCarvingCorners(cornerMaximum, cornerMinimum, layerThickness, rotatedLo
 
 
 class SVGWriter:
-	'A base class to get an svg skein from a carving.'
+	"""A base class to get an svg skein from a carving."""
 	def __init__(self,
 			addLayerTemplateToSVG,
 			cornerMaximum,
@@ -103,7 +103,7 @@ class SVGWriter:
 			decimalPlacesCarried,
 			layerThickness,
 			perimeterWidth=None):
-		'Initialize.'
+		"""Initialize."""
 		self.addLayerTemplateToSVG = addLayerTemplateToSVG
 		self.cornerMaximum = cornerMaximum
 		self.cornerMinimum = cornerMinimum
@@ -114,7 +114,7 @@ class SVGWriter:
 		self.unitScale = 3.7
 
 	def addLayerBegin(self, layerIndex, rotatedLoopLayer):
-		'Add the start lines for the layer.'
+		"""Add the start lines for the layer."""
 		zRounded = self.getRounded(rotatedLoopLayer.z)
 		self.graphicsCopy = self.graphicsXMLElement.getCopy(zRounded, self.graphicsXMLElement.parent)
 		if self.addLayerTemplateToSVG:
@@ -131,8 +131,8 @@ class SVGWriter:
 		self.pathDictionary = self.pathXMLElement.attributeDictionary
 
 	def addOriginalAsComment(self, xmlElement):
-		'Add original xmlElement as a comment.'
-		if xmlElement == None:
+		"""Add original xmlElement as a comment."""
+		if xmlElement is None:
 			return
 		if xmlElement.className == 'comment':
 			xmlElement.setParentAddToChildren(self.svgElement)
@@ -157,9 +157,9 @@ class SVGWriter:
 		commentElement.setParentAddToChildren(self.svgElement)
 
 	def addRotatedLoopLayerToOutput(self, layerIndex, rotatedLoopLayer):
-		'Add rotated boundary layer to the output.'
+		"""Add rotated boundary layer to the output."""
 		self.addLayerBegin(layerIndex, rotatedLoopLayer)
-		if rotatedLoopLayer.rotation != None:
+		if rotatedLoopLayer.rotation is not None:
 			self.graphicsCopy.attributeDictionary['bridgeRotation'] = str(rotatedLoopLayer.rotation)
 		if self.addLayerTemplateToSVG:
 			self.pathDictionary['transform'] = self.getTransformString()
@@ -168,12 +168,12 @@ class SVGWriter:
 		self.pathDictionary['d'] = self.getSVGStringForLoops(rotatedLoopLayer.loops)
 
 	def addRotatedLoopLayersToOutput(self, rotatedLoopLayers):
-		'Add rotated boundary layers to the output.'
+		"""Add rotated boundary layers to the output."""
 		for rotatedLoopLayerIndex, rotatedLoopLayer in enumerate(rotatedLoopLayers):
 			self.addRotatedLoopLayerToOutput(rotatedLoopLayerIndex, rotatedLoopLayer)
 
 	def getReplacedSVGTemplate(self, fileName, procedureName, rotatedLoopLayers, xmlElement=None):
-		'Get the lines of text from the layer_template.svg file.'
+		"""Get the lines of text from the layer_template.svg file."""
 		self.extent = self.cornerMaximum - self.cornerMinimum
 		svgTemplateText = archive.getFileText(archive.getTemplatesPath('layer_template.svg'))
 		self.xmlParser = XMLSimpleReader( fileName, None, svgTemplateText )
@@ -208,7 +208,7 @@ class SVGWriter:
 		width = max(self.extent.x * self.unitScale, svgMinWidth)
 		svgElementDictionary['width'] = '%spx' % self.getRounded( width )
 		self.sliceDictionary['decimalPlacesCarried'] = str( self.decimalPlacesCarried )
-		if self.perimeterWidth != None:
+		if self.perimeterWidth is not None:
 			self.sliceDictionary['perimeterWidth'] = self.getRounded( self.perimeterWidth )
 		self.sliceDictionary['yAxisPointingUpward'] = 'true'
 		self.sliceDictionary['procedureName'] = procedureName
@@ -234,21 +234,21 @@ class SVGWriter:
 		return xml_simple_writer.getBeforeRootOutput(self.xmlParser)
 
 	def getRounded(self, number):
-		'Get number rounded to the number of carried decimal places as a string.'
+		"""Get number rounded to the number of carried decimal places as a string."""
 		return euclidean.getRoundedToPlacesString(self.decimalPlacesCarried, number)
 
 	def getRoundedComplexString(self, point):
-		'Get the rounded complex string.'
+		"""Get the rounded complex string."""
 		return self.getRounded( point.real ) + ' ' + self.getRounded( point.imag )
 
 	def getSVGStringForLoop( self, loop ):
-		'Get the svg loop string.'
+		"""Get the svg loop string."""
 		if len(loop) < 1:
 			return ''
 		return self.getSVGStringForPath(loop) + ' z'
 
 	def getSVGStringForLoops( self, loops ):
-		'Get the svg loops string.'
+		"""Get the svg loops string."""
 		loopString = ''
 		if len(loops) > 0:
 			loopString += self.getSVGStringForLoop( loops[0] )
@@ -257,7 +257,7 @@ class SVGWriter:
 		return loopString
 
 	def getSVGStringForPath( self, path ):
-		'Get the svg path string.'
+		"""Get the svg path string."""
 		svgLoopString = ''
 		for point in path:
 			stringBeginning = 'M '
@@ -267,23 +267,23 @@ class SVGWriter:
 		return svgLoopString
 
 	def setMetadataNoscriptElement(self, key, prefix, value):
-		'Set the metadata value and the text.'
+		"""Set the metadata value and the text."""
 		valueString = self.getRounded(value)
 		self.sliceDictionary[key] = valueString
 		self.setDimensionTexts(key, prefix + valueString)
 
 	def setDimensionTexts(self, key, valueString):
-		'Set the texts to the valueString followed by mm.'
+		"""Set the texts to the valueString followed by mm."""
 		self.setTexts(key, valueString + ' mm')
 
 	def setTexts(self, key, valueString):
-		'Set the texts to the valueString.'
+		"""Set the texts to the valueString."""
 		self.svgElement.getXMLElementByID(key + 'Iso').text = valueString
 		self.svgElement.getXMLElementByID(key + 'Layer').text = valueString
 		self.svgElement.getXMLElementByID(key + 'Scroll').text = valueString
 
 	def getTransformString(self):
-		'Get the svg transform string.'
+		"""Get the svg transform string."""
 		cornerMinimumXString = self.getRounded(-self.cornerMinimum.x)
 		cornerMinimumYString = self.getRounded(-self.cornerMinimum.y)
 		return 'scale(%s, %s) translate(%s, %s)' % (self.unitScale, - self.unitScale, cornerMinimumXString, cornerMinimumYString)

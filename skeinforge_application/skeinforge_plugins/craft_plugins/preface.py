@@ -73,13 +73,9 @@ import __init__
 from datetime import date
 from fabmetheus_utilities.fabmetheus_tools import fabmetheus_interpret
 from fabmetheus_utilities.svg_reader import SVGReader
-from fabmetheus_utilities.xml_simple_reader import XMLSimpleReader
 from fabmetheus_utilities import archive
-from fabmetheus_utilities import euclidean
 from fabmetheus_utilities import gcodec
-from fabmetheus_utilities import intercircle
 from fabmetheus_utilities import settings
-from fabmetheus_utilities import svg_writer
 from skeinforge_application.skeinforge_utilities import skeinforge_craft
 from skeinforge_application.skeinforge_utilities import skeinforge_polyfile
 from skeinforge_application.skeinforge_utilities import skeinforge_profile
@@ -93,30 +89,30 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getCraftedText( fileName, text='', repository = None ):
-	"Preface and convert an svg file or text."
+	"""Preface and convert an svg file or text."""
 	return getCraftedTextFromText(archive.getTextIfEmpty(fileName, text), repository)
 
 def getCraftedTextFromText( text, repository = None ):
-	"Preface and convert an svg text."
+	"""Preface and convert an svg text."""
 	if gcodec.isProcedureDoneOrFileIsEmpty( text, 'preface'):
 		return text
-	if repository == None:
+	if repository is None:
 		repository = settings.getReadRepository(PrefaceRepository())
 	return PrefaceSkein().getCraftedGcode(repository, text)
 
 def getNewRepository():
-	'Get new repository.'
+	"""Get new repository."""
 	return PrefaceRepository()
 
 def writeOutput(fileName, shouldAnalyze=True):
-	"Preface the carving of a gcode file."
+	"""Preface the carving of a gcode file."""
 	skeinforge_craft.writeChainTextWithNounMessage(fileName, 'preface', shouldAnalyze)
 
 
 class PrefaceRepository:
-	"A class to handle the preface settings."
+	"""A class to handle the preface settings."""
 	def __init__(self):
-		"Set the default settings, execute title & settings fileName."
+		"""Set the default settings, execute title & settings fileName."""
 		skeinforge_profile.addListsToCraftTypeRepository('skeinforge_application.skeinforge_plugins.craft_plugins.preface.html', self )
 		self.fileNameInput = settings.FileNameInput().getFromFileName( fabmetheus_interpret.getGNUTranslatorGcodeFileTypeTuples(), 'Open File for Preface', self, '')
 		self.openWikiManualHelpPage = settings.HelpPage().getOpenFromAbsolute('http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Preface')
@@ -128,22 +124,20 @@ class PrefaceRepository:
 		settings.LabelSeparator().getFromRepository(self)
 		self.setPositioningToAbsolute = settings.BooleanSetting().getFromValue('Set Positioning to Absolute', self, True )
 		self.setUnitsToMillimeters = settings.BooleanSetting().getFromValue('Set Units to Millimeters', self, True )
-		self.startAtHome = settings.BooleanSetting().getFromValue('Start at Home', self, False )
+		self.startAtHome = settings.BooleanSetting().getFromValue('Home before Print', self, False )
+		self.resetExtruder = settings.BooleanSetting().getFromValue('Reset Extruder before Print', self, True )
 		settings.LabelSeparator().getFromRepository(self)
-		settings.LabelDisplay().getFromName('- Turn Extruder Off -', self )
-		self.turnExtruderOffAtShutDown = settings.BooleanSetting().getFromValue('Turn Extruder Off at Shut Down', self, True )
-		self.turnExtruderOffAtStartUp = settings.BooleanSetting().getFromValue('Turn Extruder Off at Start Up', self, True )
 		self.executeTitle = 'Preface'
 
 	def execute(self):
-		"Preface button has been clicked."
+		"""Preface button has been clicked."""
 		fileNames = skeinforge_polyfile.getFileOrDirectoryTypesUnmodifiedGcode(self.fileNameInput.value, fabmetheus_interpret.getImportPluginFileNames(), self.fileNameInput.wasCancelled)
 		for fileName in fileNames:
 			writeOutput(fileName)
 
 
 class PrefaceSkein:
-	"A class to preface a skein of extrusions."
+	"""A class to preface a skein of extrusions."""
 	def __init__(self):
 		self.distanceFeedRate = gcodec.DistanceFeedRate()
 		self.extruderActive = False
@@ -151,12 +145,14 @@ class PrefaceSkein:
 		self.oldLocation = None
 		self.svgReader = SVGReader()
 
+
+
 	def addFromUpperLowerFile(self, fileName):
-		"Add lines of text from the fileName or the lowercase fileName, if there is no file by the original fileName in the directory."
+		"""Add lines of text from the fileName or the lowercase fileName, if there is no file by the original fileName in the directory."""
 		self.distanceFeedRate.addLinesSetAbsoluteDistanceMode(settings.getLinesInAlterationsOrGivenDirectory(fileName))
 
 	def addInitializationToOutput(self):
-		"Add initialization gcode to the output."
+		"""Add initialization gcode to the output."""
 		self.addFromUpperLowerFile(self.repository.nameOfStartFile.value) # Add a start file if it exists.
 		self.distanceFeedRate.addTagBracketedLine('creation', 'skeinforge') # GCode formatted comment
 		absoluteFilePathUntilDot = os.path.abspath(__file__)[: os.path.abspath(__file__).rfind('.')]
@@ -171,8 +167,8 @@ class PrefaceSkein:
 			self.distanceFeedRate.addLine('G21 ;set units to millimeters') # Set units to millimeters.
 		if self.repository.startAtHome.value:
 			self.distanceFeedRate.addLine('G28 ;start at home') # Start at home.
-		if self.repository.turnExtruderOffAtStartUp.value:
-			self.distanceFeedRate.addLine('M103') # Turn extruder off.
+		if self.repository.resetExtruder.value:
+			self.distanceFeedRate.addLine('G92 E0 ;reset extruder distance') # Start at home.
 		craftTypeName = skeinforge_profile.getCraftTypeName()
 		self.distanceFeedRate.addTagBracketedLine('craftTypeName', craftTypeName)
 		self.distanceFeedRate.addTagBracketedLine('decimalPlacesCarried', self.distanceFeedRate.decimalPlacesCarried)
@@ -191,26 +187,19 @@ class PrefaceSkein:
 		self.distanceFeedRate.addLine('(<crafting>)') # Initialization is finished, crafting is starting.
 
 	def addPreface( self, rotatedLoopLayer ):
-		"Add preface to the carve layer."
+		"""Add preface to the carve layer."""
 		self.distanceFeedRate.addLine('(<layer> %s )' % rotatedLoopLayer.z ) # Indicate that a new layer is starting.
-		if rotatedLoopLayer.rotation != None:
+		if rotatedLoopLayer.rotation is not None:
 			self.distanceFeedRate.addTagBracketedLine('bridgeRotation', str( rotatedLoopLayer.rotation ) ) # Indicate the bridge rotation.
 		for loop in rotatedLoopLayer.loops:
 			self.distanceFeedRate.addGcodeFromLoop(loop, rotatedLoopLayer.z)
 		self.distanceFeedRate.addLine('(</layer>)')
 
-	def addShutdownToOutput(self):
-		"Add shutdown gcode to the output."
-		self.distanceFeedRate.addLine('(</crafting>)') # GCode formatted comment
-		if self.repository.turnExtruderOffAtShutDown.value:
-			self.distanceFeedRate.addLine('M103') # Turn extruder motor off.
-		self.addFromUpperLowerFile(self.repository.nameOfEndFile.value) # Add an end file if it exists.
-
 	def getCraftedGcode( self, repository, gcodeText ):
-		"Parse gcode text and store the bevel gcode."
+		"""Parse gcode text and store the bevel gcode."""
 		self.repository = repository
 		self.svgReader.parseSVG('', gcodeText)
-		if self.svgReader.sliceDictionary == None:
+		if self.svgReader.sliceDictionary is None:
 			print('Warning, nothing will be done because the sliceDictionary could not be found getCraftedGcode in preface.')
 			return ''
 		self.distanceFeedRate.decimalPlacesCarried = int(self.svgReader.sliceDictionary['decimalPlacesCarried'])
@@ -218,12 +207,11 @@ class PrefaceSkein:
 		for rotatedLoopLayerIndex, rotatedLoopLayer in enumerate(self.svgReader.rotatedLoopLayers):
 			settings.printProgressByNumber(rotatedLoopLayerIndex, len(self.svgReader.rotatedLoopLayers), 'preface')
 			self.addPreface( rotatedLoopLayer )
-		self.addShutdownToOutput()
 		return self.distanceFeedRate.output.getvalue()
 
 
 def main():
-	"Display the preface dialog."
+	"""Display the preface dialog."""
 	if len(sys.argv) > 1:
 		writeOutput(' '.join(sys.argv[1 :]))
 	else:

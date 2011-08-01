@@ -33,7 +33,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getCarvingFromParser(xmlParser):
-	"Get the carving for the parser."
+	"""Get the carving for the parser."""
 	booleanGeometryElement = xmlParser.getRoot()
 	booleanGeometryElement.xmlObject = boolean_geometry.BooleanGeometry()
 	booleanGeometryElement.xmlProcessor = XMLBooleanGeometryProcessor()
@@ -42,9 +42,9 @@ def getCarvingFromParser(xmlParser):
 
 
 class XMLBooleanGeometryProcessor():
-	"A class to process xml boolean geometry elements."
+	"""A class to process xml boolean geometry elements."""
 	def __init__(self):
-		"Initialize processor."
+		"""Initialize processor."""
 		self.functions = []
 		self.manipulationMatrixDictionary = archive.getGeometryDictionary('manipulation_matrix')
 		self.manipulationPathDictionary = archive.getGeometryDictionary('manipulation_paths')
@@ -61,11 +61,11 @@ class XMLBooleanGeometryProcessor():
 		archive.addToNamePathDictionary(archive.getGeometryPath('statements'), self.namePathDictionary)
 
 	def __repr__(self):
-		'Get the string representation of this XMLBooleanGeometryProcessor.'
+		"""Get the string representation of this XMLBooleanGeometryProcessor."""
 		return 'XMLBooleanGeometryProcessor with %s functions.' % len(self.functions)
 
 	def convertXMLElement( self, geometryOutput, xmlElement ):
-		"Convert the xml element."
+		"""Convert the xml element."""
 		geometryOutputKeys = geometryOutput.keys()
 		if len( geometryOutputKeys ) < 1:
 			return None
@@ -74,30 +74,30 @@ class XMLBooleanGeometryProcessor():
 		if lowerClassName not in self.namePathDictionary:
 			return None
 		pluginModule = archive.getModuleWithPath( self.namePathDictionary[ lowerClassName ] )
-		if pluginModule == None:
+		if pluginModule is None:
 			return None
 		xmlElement.className = lowerClassName
 		return pluginModule.convertXMLElement(geometryOutput[ firstKey ], xmlElement)
 
 	def createChildren( self, geometryOutput, parent ):
-		"Create children for the parent."
+		"""Create children for the parent."""
 		for geometryOutputChild in geometryOutput:
 			child = xml_simple_reader.XMLElement()
 			child.setParentAddToChildren( parent )
 			self.convertXMLElement(geometryOutputChild, child)
 
 	def processChildren(self, xmlElement):
-		"Process the children of the xml element."
+		"""Process the children of the xml element."""
 		for child in xmlElement.children:
 			self.processXMLElement(child)
 
 	def processXMLElement(self, xmlElement):
-		'Process the xml element.'
+		"""Process the xml element."""
 		lowerClassName = xmlElement.className.lower()
 		if lowerClassName not in self.namePathDictionary:
 			return None
 		pluginModule = archive.getModuleWithPath(self.namePathDictionary[lowerClassName])
-		if pluginModule == None:
+		if pluginModule is None:
 			return None
 		try:
 			return pluginModule.processXMLElement(xmlElement)

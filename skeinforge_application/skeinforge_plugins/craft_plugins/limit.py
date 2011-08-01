@@ -38,19 +38,13 @@ The limit tool has created the file:
 #Init has to be imported first because it has code to workaround the python bug where relative imports don't work if the module is imported as a main module.
 import __init__
 
-from datetime import date
 from fabmetheus_utilities.fabmetheus_tools import fabmetheus_interpret
-from fabmetheus_utilities.vector3 import Vector3
 from fabmetheus_utilities import archive
-from fabmetheus_utilities import euclidean
 from fabmetheus_utilities import gcodec
-from fabmetheus_utilities import intercircle
 from fabmetheus_utilities import settings
 from skeinforge_application.skeinforge_utilities import skeinforge_craft
 from skeinforge_application.skeinforge_utilities import skeinforge_polyfile
 from skeinforge_application.skeinforge_utilities import skeinforge_profile
-import math
-import os
 import sys
 
 
@@ -60,48 +54,48 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getCraftedText(fileName, gcodeText='', repository=None):
-	'Limit a gcode file or text.'
+	"""Limit a gcode file or text."""
 	return getCraftedTextFromText( archive.getTextIfEmpty(fileName, gcodeText), repository )
 
 def getCraftedTextFromText(gcodeText, repository=None):
-	'Limit a gcode text.'
+	"""Limit a gcode text."""
 	if gcodec.isProcedureDoneOrFileIsEmpty(gcodeText, 'limit'):
 		return gcodeText
-	if repository == None:
+	if repository is None:
 		repository = settings.getReadRepository(LimitRepository())
 	if not repository.activateLimit.value:
 		return gcodeText
 	return LimitSkein().getCraftedGcode(gcodeText, repository)
 
 def getNewRepository():
-	'Get new repository.'
+	"""Get new repository."""
 	return LimitRepository()
 
 def writeOutput(fileName, shouldAnalyze=True):
-	'Limit a gcode file.'
+	"""Limit a gcode file."""
 	skeinforge_craft.writeChainTextWithNounMessage(fileName, 'limit', shouldAnalyze)
 
 
 class LimitRepository:
-	'A class to handle the limit settings.'
+	"""A class to handle the limit settings."""
 	def __init__(self):
-		'Set the default settings, execute title & settings fileName.'
+		"""Set the default settings, execute title & settings fileName."""
 		skeinforge_profile.addListsToCraftTypeRepository('skeinforge_application.skeinforge_plugins.craft_plugins.limit.html', self )
 		self.fileNameInput = settings.FileNameInput().getFromFileName( fabmetheus_interpret.getGNUTranslatorGcodeFileTypeTuples(), 'Open File for Limit', self, '')
-		self.activateLimit = settings.BooleanSetting().getFromValue('Activate Limit', self, True)
-		self.maximumInitialFeedRate = settings.FloatSpin().getFromValue(0.5, 'Maximum Initial Feed Rate (mm/s):', self, 10.0, 1.0)
-		self.maximumZFeedRatePerSecond = settings.FloatSpin().getFromValue(0.5, 'Maximum Z Feed Rate (mm/s):', self, 10.0, 1.0)
+		self.activateLimit = settings.BooleanSetting().getFromValue('Activate Limit if your Firmware is unable to Limiting your Z-Speed.', self, False)
+		self.maximumInitialFeedRate = settings.FloatSpin().getFromValue(0.5, 'Maximum Initial Feed Rate (mm/s):', self, 10.0, 5.0)
+		self.maximumZFeedRatePerSecond = settings.FloatSpin().getFromValue(0.5, 'Maximum Z Feed Rate (mm/s):', self, 10.0, 5.0)
 		self.executeTitle = 'Limit'
 
 	def execute(self):
-		'Limit button has been clicked.'
+		"""Limit button has been clicked."""
 		fileNames = skeinforge_polyfile.getFileOrDirectoryTypesUnmodifiedGcode(self.fileNameInput.value, fabmetheus_interpret.getImportPluginFileNames(), self.fileNameInput.wasCancelled)
 		for fileName in fileNames:
 			writeOutput(fileName)
 
 
 class LimitSkein:
-	'A class to limit a skein of extrusions.'
+	"""A class to limit a skein of extrusions."""
 	def __init__(self):
 		self.distanceFeedRate = gcodec.DistanceFeedRate()
 		self.feedRateMinute = None
@@ -109,25 +103,25 @@ class LimitSkein:
 		self.oldLocation = None
 
 	def getCraftedGcode(self, gcodeText, repository):
-		'Parse gcode text and store the limit gcode.'
+		"""Parse gcode text and store the limit gcode."""
 		self.maximumZDrillFeedRatePerSecond = repository.maximumZFeedRatePerSecond.value
 		self.maximumZTravelFeedRatePerSecond = repository.maximumZFeedRatePerSecond.value
 		self.maximumZFeedRatePerSecond = self.maximumZTravelFeedRatePerSecond
 		self.repository = repository
 		self.lines = archive.getTextLines(gcodeText)
 		self.parseInitialization()
-		for lineIndex in xrange( self.lineIndex, len(self.lines) ):
+		for lineIndex in xrange(self.lineIndex, len(self.lines)):
 			self.parseLine( lineIndex )
 		return self.distanceFeedRate.output.getvalue()
 
 	def getLimitedInitialMovement(self, line, splitLine):
-		'Get a limited linear movement.'
-		if self.oldLocation == None:
+		"""Get a limited linear movement."""
+		if self.oldLocation is None:
 			line = self.distanceFeedRate.getLineWithFeedRate(60.0 * self.repository.maximumInitialFeedRate.value, line, splitLine)
 		return line
 
 	def getZLimitedLine(self, deltaZ, distance, line, splitLine):
-		'Get a replaced z limited gcode movement line.'
+		"""Get a replaced z limited gcode movement line."""
 		zFeedRateSecond = self.feedRateMinute * deltaZ / distance / 60.0
 		if zFeedRateSecond <= self.maximumZFeedRatePerSecond:
 			return line
@@ -135,9 +129,9 @@ class LimitSkein:
 		return self.distanceFeedRate.getLineWithFeedRate(limitedFeedRateMinute, line, splitLine)
 
 	def getZLimitedLineArc(self, line, splitLine):
-		'Get a replaced z limited gcode arc movement line.'
+		"""Get a replaced z limited gcode arc movement line."""
 		self.feedRateMinute = gcodec.getFeedRateMinute(self.feedRateMinute, splitLine)
-		if self.feedRateMinute == None or self.oldLocation == None:
+		if self.feedRateMinute is None or self.oldLocation is None:
 			return line
 		relativeLocation = gcodec.getLocationFromSplitLine(self.oldLocation, splitLine)
 		self.oldLocation += relativeLocation
@@ -146,18 +140,18 @@ class LimitSkein:
 		return self.getZLimitedLine(deltaZ, distance, line, splitLine)
 
 	def getZLimitedLineLinear(self, line, location, splitLine):
-		'Get a replaced z limited gcode linear movement line.'
+		"""Get a replaced z limited gcode linear movement line."""
 		self.feedRateMinute = gcodec.getFeedRateMinute(self.feedRateMinute, splitLine)
 		if location == self.oldLocation:
 			return ''
-		if self.feedRateMinute == None or self.oldLocation == None:
+		if self.feedRateMinute is None or self.oldLocation is None:
 			return line
 		deltaZ = abs(location.z - self.oldLocation.z)
 		distance = abs(location - self.oldLocation)
 		return self.getZLimitedLine(deltaZ, distance, line, splitLine)
 
 	def parseInitialization(self):
-		'Parse gcode initialization and store the parameters.'
+		"""Parse gcode initialization and store the parameters."""
 		for self.lineIndex in xrange(len(self.lines)):
 			line = self.lines[self.lineIndex]
 			splitLine = gcodec.getSplitLineBeforeBracketSemicolon(line)
@@ -173,7 +167,7 @@ class LimitSkein:
 			self.distanceFeedRate.addLine(line)
 
 	def parseLine( self, lineIndex ):
-		'Parse a gcode line and add it to the limit skein.'
+		"""Parse a gcode line and add it to the limit skein."""
 		line = self.lines[lineIndex].lstrip()
 		splitLine = gcodec.getSplitLineBeforeBracketSemicolon(line)
 		if len(splitLine) < 1:
@@ -194,7 +188,7 @@ class LimitSkein:
 
 
 def main():
-	'Display the limit dialog.'
+	"""Display the limit dialog."""
 	if len(sys.argv) > 1:
 		writeOutput(' '.join(sys.argv[1 :]))
 	else:

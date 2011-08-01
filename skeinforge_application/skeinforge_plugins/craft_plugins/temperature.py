@@ -77,14 +77,11 @@ import __init__
 
 from fabmetheus_utilities.fabmetheus_tools import fabmetheus_interpret
 from fabmetheus_utilities import archive
-from fabmetheus_utilities import euclidean
 from fabmetheus_utilities import gcodec
-from fabmetheus_utilities import intercircle
 from fabmetheus_utilities import settings
 from skeinforge_application.skeinforge_utilities import skeinforge_craft
 from skeinforge_application.skeinforge_utilities import skeinforge_polyfile
 from skeinforge_application.skeinforge_utilities import skeinforge_profile
-import math
 import sys
 
 
@@ -94,66 +91,66 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getCraftedText( fileName, text='', repository=None):
-	"Temperature the file or text."
+	"""Temperature the file or text."""
 	return getCraftedTextFromText(archive.getTextIfEmpty(fileName, text), repository)
 
 def getCraftedTextFromText(gcodeText, repository=None):
-	"Temperature a gcode linear move text."
+	"""Temperature a gcode linear move text."""
 	if gcodec.isProcedureDoneOrFileIsEmpty( gcodeText, 'temperature'):
 		return gcodeText
-	if repository == None:
+	if repository is None:
 		repository = settings.getReadRepository( TemperatureRepository() )
 	if not repository.activateTemperature.value:
 		return gcodeText
 	return TemperatureSkein().getCraftedGcode(gcodeText, repository)
 
 def getNewRepository():
-	'Get new repository.'
+	"""Get new repository."""
 	return TemperatureRepository()
 
 def writeOutput(fileName, shouldAnalyze=True):
-	"Temperature a gcode linear move file."
+	"""Temperature a gcode linear move file."""
 	skeinforge_craft.writeChainTextWithNounMessage(fileName, 'temperature', shouldAnalyze)
 
 
 class TemperatureRepository:
-	"A class to handle the temperature settings."
+	"""A class to handle the temperature settings."""
 	def __init__(self):
-		"Set the default settings, execute title & settings fileName."
+		"""Set the default settings, execute title & settings fileName."""
 		skeinforge_profile.addListsToCraftTypeRepository('skeinforge_application.skeinforge_plugins.craft_plugins.temperature.html', self )
 		self.fileNameInput = settings.FileNameInput().getFromFileName( fabmetheus_interpret.getGNUTranslatorGcodeFileTypeTuples(), 'Open File for Temperature', self, '')
-		self.activateTemperature = settings.BooleanSetting().getFromValue('Activate Temperature:', self, True )
+		self.activateTemperature = settings.BooleanSetting().getFromValue('Activate Temperature:', self, False )
 		settings.LabelSeparator().getFromRepository(self)
 		settings.LabelDisplay().getFromName('- Rate -', self )
 		self.coolingRate = settings.FloatSpin().getFromValue( 1.0, 'Cooling Rate (Celcius/second):', self, 20.0, 3.0 )
-		self.heatingRate = settings.FloatSpin().getFromValue( 1.0, 'Heating Rate (Celcius/second):', self, 20.0, 10.0 )
+		self.heatingRate = settings.FloatSpin().getFromValue( 1.0, 'Heating Rate (Celcius/second):', self, 20.0, 3.0 )
 		settings.LabelSeparator().getFromRepository(self)
-		settings.LabelDisplay().getFromName('- Temperature -', self )
-		self.baseTemperature = settings.FloatSpin().getFromValue( 140.0, 'Base Temperature (Celcius):', self, 260.0, 200.0 )
-		self.interfaceTemperature = settings.FloatSpin().getFromValue( 140.0, 'Interface Temperature (Celcius):', self, 260.0, 200.0 )
-		self.objectFirstLayerInfillTemperature = settings.FloatSpin().getFromValue( 140.0, 'Object First Layer Infill Temperature (Celcius):', self, 260.0, 195.0 )
-		self.objectFirstLayerPerimeterTemperature = settings.FloatSpin().getFromValue( 140.0, 'Object First Layer Perimeter Temperature (Celcius):', self, 260.0, 220.0 )
-		self.objectNextLayersTemperature = settings.FloatSpin().getFromValue( 140.0, 'Object Next Layers Temperature (Celcius):', self, 260.0, 230.0 )
-		self.supportLayersTemperature = settings.FloatSpin().getFromValue( 140.0, 'Support Layers Temperature (Celcius):', self, 260.0, 200.0 )
-		self.supportedLayersTemperature = settings.FloatSpin().getFromValue( 140.0, 'Supported Layers Temperature (Celcius):', self, 260.0, 230.0 )
+		settings.LabelDisplay().getFromName('- Temperature - Defaults are for PLA', self )
+		self.baseTemperature = settings.FloatSpin().getFromValue( 150.0, 'Base Temperature (Celcius):', self, 240.0, 210.0 )
+		self.interfaceTemperature = settings.FloatSpin().getFromValue( 150.0, 'Interface Temperature (Celcius):', self, 240.0, 210.0 )
+		self.objectFirstLayerInfillTemperature = settings.FloatSpin().getFromValue( 150.0, 'Object First Layer Infill Temperature (Celcius):', self, 240.0, 210.0 )
+		self.objectFirstLayerPerimeterTemperature = settings.FloatSpin().getFromValue( 150.0, 'Object First Layer Perimeter Temperature (Celcius):', self, 240.0, 210.0 )
+		self.objectNextLayersTemperature = settings.FloatSpin().getFromValue( 150.0, 'Object Next Layers Temperature (Celcius):', self, 240.0, 210.0 )
+		self.supportLayersTemperature = settings.FloatSpin().getFromValue( 150.0, 'Support Layers Temperature (Celcius):', self, 240.0, 210.0 )
+		self.supportedLayersTemperature = settings.FloatSpin().getFromValue( 150.0, 'Supported Layers Temperature (Celcius):', self, 240.0, 210.0 )
 		self.executeTitle = 'Temperature'
 
 	def execute(self):
-		"Temperature button has been clicked."
+		"""Temperature button has been clicked."""
 		fileNames = skeinforge_polyfile.getFileOrDirectoryTypesUnmodifiedGcode(self.fileNameInput.value, fabmetheus_interpret.getImportPluginFileNames(), self.fileNameInput.wasCancelled)
 		for fileName in fileNames:
 			writeOutput(fileName)
 
 
 class TemperatureSkein:
-	"A class to temperature a skein of extrusions."
+	"""A class to temperature a skein of extrusions."""
 	def __init__(self):
 		self.distanceFeedRate = gcodec.DistanceFeedRate()
 		self.lineIndex = 0
 		self.lines = None
 
 	def getCraftedGcode(self, gcodeText, repository):
-		"Parse gcode text and store the temperature gcode."
+		"""Parse gcode text and store the temperature gcode."""
 		self.repository = repository
 		self.lines = archive.getTextLines(gcodeText)
 		if self.repository.coolingRate.value < 0.1:
@@ -167,7 +164,7 @@ class TemperatureSkein:
 		return self.distanceFeedRate.output.getvalue()
 
 	def parseInitialization(self):
-		'Parse gcode initialization and store the parameters.'
+		"""Parse gcode initialization and store the parameters."""
 		for self.lineIndex in xrange(len(self.lines)):
 			line = self.lines[self.lineIndex]
 			splitLine = gcodec.getSplitLineBeforeBracketSemicolon(line)
@@ -190,7 +187,7 @@ class TemperatureSkein:
 
 
 def main():
-	"Display the temperature dialog."
+	"""Display the temperature dialog."""
 	if len(sys.argv) > 1:
 		writeOutput(' '.join(sys.argv[1 :]))
 	else:

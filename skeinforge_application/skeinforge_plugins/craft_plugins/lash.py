@@ -59,49 +59,49 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getCraftedText( fileName, text, lashRepository = None ):
-	"Get a lashed gcode linear move text."
+	"""Get a lashed gcode linear move text."""
 	return getCraftedTextFromText( archive.getTextIfEmpty(fileName, text), lashRepository )
 
 def getCraftedTextFromText( gcodeText, lashRepository = None ):
-	"Get a lashed gcode linear move text from text."
+	"""Get a lashed gcode linear move text from text."""
 	if gcodec.isProcedureDoneOrFileIsEmpty( gcodeText, 'lash'):
 		return gcodeText
-	if lashRepository == None:
+	if lashRepository is None:
 		lashRepository = settings.getReadRepository( LashRepository() )
 	if not lashRepository.activateLash.value:
 		return gcodeText
 	return LashSkein().getCraftedGcode( gcodeText, lashRepository )
 
 def getNewRepository():
-	'Get new repository.'
+	"""Get new repository."""
 	return LashRepository()
 
 def writeOutput(fileName, shouldAnalyze=True):
-	"Lash a gcode linear move file."
+	"""Lash a gcode linear move file."""
 	skeinforge_craft.writeChainTextWithNounMessage(fileName, 'lash', shouldAnalyze)
 
 
 class LashRepository:
-	"A class to handle the lash settings."
+	"""A class to handle the lash settings."""
 	def __init__(self):
-		"Set the default settings, execute title & settings fileName."
+		"""Set the default settings, execute title & settings fileName."""
 		skeinforge_profile.addListsToCraftTypeRepository('skeinforge_application.skeinforge_plugins.craft_plugins.lash.html', self)
 		self.fileNameInput = settings.FileNameInput().getFromFileName( fabmetheus_interpret.getGNUTranslatorGcodeFileTypeTuples(), 'Open File for Lash', self, '')
 		self.openWikiManualHelpPage = settings.HelpPage().getOpenFromAbsolute('http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Lash')
-		self.activateLash = settings.BooleanSetting().getFromValue('Activate Lash', self, False )
-		self.xBacklash = settings.FloatSpin().getFromValue( 0.1, 'X Backlash (mm):', self, 0.5, 0.2 )
-		self.yBacklash = settings.FloatSpin().getFromValue( 0.1, 'Y Backlash (mm):', self, 0.5, 0.3 )
+		self.activateLash = settings.BooleanSetting().getFromValue('Activate Lash if you have backlash in your axes. \nBut its better to fix the mechanical problem!', self, False )
+		self.xBacklash = settings.FloatSpin().getFromValue( 0.0, 'X Backlash (mm):', self, 0.5, 0.0 )
+		self.yBacklash = settings.FloatSpin().getFromValue( 0.0, 'Y Backlash (mm):', self, 0.5, 0.0 )
 		self.executeTitle = 'Lash'
 
 	def execute(self):
-		"Lash button has been clicked."
+		"""Lash button has been clicked."""
 		fileNames = skeinforge_polyfile.getFileOrDirectoryTypesUnmodifiedGcode(self.fileNameInput.value, fabmetheus_interpret.getImportPluginFileNames(), self.fileNameInput.wasCancelled)
 		for fileName in fileNames:
 			writeOutput(fileName)
 
 
 class LashSkein:
-	"A class to lash a skein of extrusions."
+	"""A class to lash a skein of extrusions."""
 	def __init__(self):
 		self.distanceFeedRate = gcodec.DistanceFeedRate()
 		self.feedRateMinute = 958.0
@@ -110,20 +110,20 @@ class LashSkein:
 		self.oldLocation = None
 
 	def getCraftedGcode( self, gcodeText, lashRepository ):
-		"Parse gcode text and store the lash gcode."
+		"""Parse gcode text and store the lash gcode."""
 		self.lines = archive.getTextLines(gcodeText)
 		self.lashRepository = lashRepository
 		self.xBacklash = lashRepository.xBacklash.value
 		self.yBacklash = lashRepository.yBacklash.value
 		self.parseInitialization()
-		for self.lineIndex in xrange( self.lineIndex, len(self.lines) ):
+		for self.lineIndex in xrange(self.lineIndex, len(self.lines)):
 			line = self.lines[self.lineIndex]
 			self.parseLash(line)
 		return self.distanceFeedRate.output.getvalue()
 
 	def getLashedLine( self, line, location, splitLine ):
-		"Get lashed gcode line."
-		if self.oldLocation == None:
+		"""Get lashed gcode line."""
+		if self.oldLocation is None:
 			return line
 		if location.x > self.oldLocation.x:
 			line = self.distanceFeedRate.getLineWithX( line, splitLine, location.x + self.xBacklash )
@@ -136,7 +136,7 @@ class LashSkein:
 		return line
 
 	def parseInitialization(self):
-		'Parse gcode initialization and store the parameters.'
+		"""Parse gcode initialization and store the parameters."""
 		for self.lineIndex in xrange(len(self.lines)):
 			line = self.lines[self.lineIndex]
 			splitLine = gcodec.getSplitLineBeforeBracketSemicolon(line)
@@ -148,7 +148,7 @@ class LashSkein:
 			self.distanceFeedRate.addLine(line)
 
 	def parseLash(self, line):
-		"Parse a gcode line and add it to the lash skein."
+		"""Parse a gcode line and add it to the lash skein."""
 		splitLine = gcodec.getSplitLineBeforeBracketSemicolon(line)
 		if len(splitLine) < 1:
 			return
@@ -161,7 +161,7 @@ class LashSkein:
 
 
 def main():
-	"Display the lash dialog."
+	"""Display the lash dialog."""
 	if len(sys.argv) > 1:
 		writeOutput(' '.join(sys.argv[1 :]))
 	else:

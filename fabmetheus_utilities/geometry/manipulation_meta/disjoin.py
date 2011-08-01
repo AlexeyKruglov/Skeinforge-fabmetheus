@@ -26,7 +26,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getLinkedXMLElement(idSuffix, parent, target):
-	'Get xmlElement with identifiers, importName and parent.'
+	"""Get xmlElement with identifiers, importName and parent."""
 	linkedXMLElement = xml_simple_reader.XMLElement()
 	linkedXMLElement.importName = parent.importName
 	euclidean.overwriteDictionary(target.attributeDictionary, ['id', 'name', 'quantity'], linkedXMLElement.attributeDictionary)
@@ -41,24 +41,24 @@ def getLinkedXMLElement(idSuffix, parent, target):
 	return linkedXMLElement
 
 def getNewDerivation(xmlElement):
-	'Get new derivation.'
+	"""Get new derivation."""
 	return DisjoinDerivation(xmlElement)
 
 def processXMLElement(xmlElement):
-	'Process the xml element.'
+	"""Process the xml element."""
 	processXMLElementByDerivation(None, xmlElement)
 
 def processXMLElementByDerivation(derivation, xmlElement):
-	'Process the xml element by derivation.'
-	if derivation == None:
+	"""Process the xml element by derivation."""
+	if derivation is None:
 		derivation = DisjoinDerivation(xmlElement)
 	targetXMLElement = derivation.targetXMLElement
-	if targetXMLElement == None:
+	if targetXMLElement is None:
 		print('Warning, disjoin could not get target for:')
 		print(xmlElement)
 		return
 	xmlObject = targetXMLElement.xmlObject
-	if xmlObject == None:
+	if xmlObject is None:
 		print('Warning, processXMLElementByDerivation in disjoin could not get xmlObject for:')
 		print(targetXMLElement)
 		print(derivation.xmlElement)
@@ -106,14 +106,14 @@ def processXMLElementByDerivation(derivation, xmlElement):
 
 
 class DisjoinDerivation:
-	"Class to hold disjoin variables."
+	"""Class to hold disjoin variables."""
 	def __init__(self, xmlElement):
-		'Set defaults.'
+		"""Set defaults."""
 		self.importRadius = setting.getImportRadius(xmlElement)
 		self.layerThickness = setting.getLayerThickness(xmlElement)
 		self.sheetThickness = setting.getSheetThickness(xmlElement)
 		self.targetXMLElement = evaluate.getXMLElementByKey('target', xmlElement)
 
 	def __repr__(self):
-		"Get the string representation of this DisjoinDerivation."
+		"""Get the string representation of this DisjoinDerivation."""
 		return str(self.__dict__)

@@ -27,27 +27,27 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getNewDerivation(xmlElement):
-	'Get new derivation.'
+	"""Get new derivation."""
 	return ImportDerivation(xmlElement)
 
 def getXMLFromCarvingFileName(fileName):
-	'Get xml text from xml text.'
+	"""Get xml text from xml text."""
 	carving = fabmetheus_interpret.getCarving(fileName)
-	if carving == None:
+	if carving is None:
 		return ''
 	output = xml_simple_writer.getBeginGeometryXMLOutput()
 	carving.addXML(0, output)
 	return xml_simple_writer.getEndGeometryXMLString(output)
 
 def processXMLElement(xmlElement):
-	"Process the xml element."
+	"""Process the xml element."""
 	processXMLElementByDerivation(None, xmlElement)
 
 def processXMLElementByDerivation(derivation, xmlElement):
-	'Process the xml element by derivation.'
-	if derivation == None:
+	"""Process the xml element by derivation."""
+	if derivation is None:
 		derivation = ImportDerivation(xmlElement)
-	if derivation.fileName == None:
+	if derivation.fileName is None:
 		return
 	parserFileName = xmlElement.getParser().fileName
 	absoluteFileName = archive.getAbsoluteFolderPath(parserFileName, derivation.fileName)
@@ -69,7 +69,7 @@ def processXMLElementByDerivation(derivation, xmlElement):
 	if xmlText == '':
 		print('The file %s could not be found by processXMLElement in import.' % derivation.fileName)
 		return
-	if derivation.importName == None:
+	if derivation.importName is None:
 		xmlElement.importName = archive.getUntilDot(derivation.fileName)
 		if derivation.basename:
 			xmlElement.importName = os.path.basename(xmlElement.importName)
@@ -89,9 +89,9 @@ def processXMLElementByDerivation(derivation, xmlElement):
 
 
 class ImportDerivation:
-	"Class to hold import variables."
+	"""Class to hold import variables."""
 	def __init__(self, xmlElement):
-		'Set defaults.'
+		"""Set defaults."""
 		self.basename = evaluate.getEvaluatedBoolean(True, 'basename', xmlElement)
 		self.fileName = evaluate.getEvaluatedString('', 'file', xmlElement)
 		self.importName = evaluate.getEvaluatedString(None, '_importName', xmlElement)
@@ -99,5 +99,5 @@ class ImportDerivation:
 		self.xmlElement = xmlElement
 
 	def __repr__(self):
-		"Get the string representation of this ImportDerivation."
+		"""Get the string representation of this ImportDerivation."""
 		return str(self.__dict__)

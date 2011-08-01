@@ -92,7 +92,6 @@ from fabmetheus_utilities import settings
 from skeinforge_application.skeinforge_utilities import skeinforge_craft
 from skeinforge_application.skeinforge_utilities import skeinforge_polyfile
 from skeinforge_application.skeinforge_utilities import skeinforge_profile
-import math
 import sys
 
 
@@ -102,64 +101,64 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getCraftedText( fileName, text, wipeRepository = None ):
-	"Wipe a gcode linear move text."
+	"""Wipe a gcode linear move text."""
 	return getCraftedTextFromText( archive.getTextIfEmpty(fileName, text), wipeRepository )
 
 def getCraftedTextFromText( gcodeText, wipeRepository = None ):
-	"Wipe a gcode linear move text."
+	"""Wipe a gcode linear move text."""
 	if gcodec.isProcedureDoneOrFileIsEmpty( gcodeText, 'wipe'):
 		return gcodeText
-	if wipeRepository == None:
+	if wipeRepository is None:
 		wipeRepository = settings.getReadRepository( WipeRepository() )
 	if not wipeRepository.activateWipe.value:
 		return gcodeText
 	return WipeSkein().getCraftedGcode( gcodeText, wipeRepository )
 
 def getNewRepository():
-	'Get new repository.'
+	"""Get new repository."""
 	return WipeRepository()
 
 def writeOutput(fileName, shouldAnalyze=True):
-	"Wipe a gcode linear move file."
+	"""Wipe a gcode linear move file."""
 	skeinforge_craft.writeChainTextWithNounMessage(fileName, 'wipe', shouldAnalyze)
 
 
 class WipeRepository:
-	"A class to handle the wipe settings."
+	"""A class to handle the wipe settings."""
 	def __init__(self):
-		"Set the default settings, execute title & settings fileName."
+		"""Set the default settings, execute title & settings fileName."""
 		skeinforge_profile.addListsToCraftTypeRepository('skeinforge_application.skeinforge_plugins.craft_plugins.wipe.html', self )
 		self.fileNameInput = settings.FileNameInput().getFromFileName( fabmetheus_interpret.getGNUTranslatorGcodeFileTypeTuples(), 'Open File for Wipe', self, '')
 		self.openWikiManualHelpPage = settings.HelpPage().getOpenFromAbsolute('http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Wipe')
 		self.activateWipe = settings.BooleanSetting().getFromValue('Activate Wipe', self, False )
 		settings.LabelSeparator().getFromRepository(self)
 		settings.LabelDisplay().getFromName('- Location Arrival -', self )
-		self.locationArrivalX = settings.FloatSpin().getFromValue( - 100.0, 'Location Arrival X (mm):', self, 100.0, - 70.0 )
-		self.locationArrivalY = settings.FloatSpin().getFromValue( - 100.0, 'Location Arrival Y (mm):', self, 100.0, - 50.0 )
-		self.locationArrivalZ = settings.FloatSpin().getFromValue( - 100.0, 'Location Arrival Z (mm):', self, 100.0, 50.0 )
+		self.locationArrivalX = settings.FloatSpin().getFromValue( - 100.0, 'Location Arrival X (mm):', self, 300.0, 0.0 )
+		self.locationArrivalY = settings.FloatSpin().getFromValue( - 100.0, 'Location Arrival Y (mm):', self, 300.0, 5.0 )
+		self.locationArrivalZ = settings.FloatSpin().getFromValue( - 100.0, 'Location Arrival Z (mm):', self, 300.0, 0.0 )
 		settings.LabelSeparator().getFromRepository(self)
 		settings.LabelDisplay().getFromName('- Location Departure -', self )
-		self.locationDepartureX = settings.FloatSpin().getFromValue( - 100.0, 'Location Departure X (mm):', self, 100.0, - 70.0 )
-		self.locationDepartureY = settings.FloatSpin().getFromValue( - 100.0, 'Location Departure Y (mm):', self, 100.0, - 40.0 )
-		self.locationDepartureZ = settings.FloatSpin().getFromValue( - 100.0, 'Location Departure Z (mm):', self, 100.0, 50.0 )
+		self.locationDepartureX = settings.FloatSpin().getFromValue( - 100.0, 'Location Departure X (mm):', self, 300.0, 5.0 )
+		self.locationDepartureY = settings.FloatSpin().getFromValue( - 100.0, 'Location Departure Y (mm):', self, 300.0, 0.0 )
+		self.locationDepartureZ = settings.FloatSpin().getFromValue( - 100.0, 'Location Departure Z (mm):', self, 300.0, 0.0 )
 		settings.LabelSeparator().getFromRepository(self)
 		settings.LabelDisplay().getFromName('- Location Wipe -', self )
-		self.locationWipeX = settings.FloatSpin().getFromValue( - 100.0, 'Location Wipe X (mm):', self, 100.0, - 70.0 )
-		self.locationWipeY = settings.FloatSpin().getFromValue( - 100.0, 'Location Wipe Y (mm):', self, 100.0, - 70.0 )
-		self.locationWipeZ = settings.FloatSpin().getFromValue( - 100.0, 'Location Wipe Z (mm):', self, 100.0, 50.0 )
+		self.locationWipeX = settings.FloatSpin().getFromValue( - 100.0, 'Location Wipe X (mm):', self, 300.0, 0.0 )
+		self.locationWipeY = settings.FloatSpin().getFromValue( - 100.0, 'Location Wipe Y (mm):', self, 300.0, 0.0 )
+		self.locationWipeZ = settings.FloatSpin().getFromValue( - 100.0, 'Location Wipe Z (mm):', self, 300.0, 0.0 )
 		settings.LabelSeparator().getFromRepository(self)
-		self.wipePeriod = settings.IntSpin().getFromValue( 1, 'Wipe Period (layers):', self, 5, 3 )
+		self.wipePeriod = settings.IntSpin().getFromValue( 1, 'Wipe Period (layers):', self, 50000, 33333 )
 		self.executeTitle = 'Wipe'
 
 	def execute(self):
-		"Wipe button has been clicked."
+		"""Wipe button has been clicked."""
 		fileNames = skeinforge_polyfile.getFileOrDirectoryTypesUnmodifiedGcode(self.fileNameInput.value, fabmetheus_interpret.getImportPluginFileNames(), self.fileNameInput.wasCancelled)
 		for fileName in fileNames:
 			writeOutput(fileName)
 
 
 class WipeSkein:
-	"A class to wipe a skein of extrusions."
+	"""A class to wipe a skein of extrusions."""
 	def __init__(self):
 		self.distanceFeedRate = gcodec.DistanceFeedRate()
 		self.extruderActive = False
@@ -172,7 +171,7 @@ class WipeSkein:
 		self.travelFeedRateMinute = 957.0
 
 	def addHop( self, begin, end ):
-		"Add hop to highest point."
+		"""Add hop to highest point."""
 		beginEndDistance = begin.distance(end)
 		if beginEndDistance < 3.0 * self.absolutePerimeterWidth:
 			return
@@ -185,7 +184,7 @@ class WipeSkein:
 		self.distanceFeedRate.addLine( self.getLinearMoveWithFeedRate( self.travelFeedRateMinute, closeToOldArrival ) )
 
 	def addWipeTravel( self, splitLine ):
-		"Add the wipe travel gcode."
+		"""Add the wipe travel gcode."""
 		location = gcodec.getLocationFromSplitLine(self.oldLocation, splitLine)
 		self.highestZ = max( self.highestZ, location.z )
 		if not self.shouldWipe:
@@ -193,7 +192,7 @@ class WipeSkein:
 		self.shouldWipe = False
 		if self.extruderActive:
 			self.distanceFeedRate.addLine('M103')
-		if self.oldLocation != None:
+		if self.oldLocation is not None:
 			self.addHop( self.oldLocation, self.locationArrival )
 		self.distanceFeedRate.addLine( self.getLinearMoveWithFeedRate( self.travelFeedRateMinute, self.locationArrival ) )
 		self.distanceFeedRate.addLine( self.getLinearMoveWithFeedRate( self.travelFeedRateMinute, self.locationWipe ) )
@@ -203,24 +202,24 @@ class WipeSkein:
 			self.distanceFeedRate.addLine('M101')
 
 	def getCraftedGcode( self, gcodeText, wipeRepository ):
-		"Parse gcode text and store the wipe gcode."
+		"""Parse gcode text and store the wipe gcode."""
 		self.lines = archive.getTextLines(gcodeText)
 		self.wipePeriod = wipeRepository.wipePeriod.value
 		self.parseInitialization( wipeRepository )
 		self.locationArrival = Vector3( wipeRepository.locationArrivalX.value, wipeRepository.locationArrivalY.value, wipeRepository.locationArrivalZ.value )
 		self.locationDeparture = Vector3( wipeRepository.locationDepartureX.value, wipeRepository.locationDepartureY.value, wipeRepository.locationDepartureZ.value )
 		self.locationWipe = Vector3( wipeRepository.locationWipeX.value, wipeRepository.locationWipeY.value, wipeRepository.locationWipeZ.value )
-		for self.lineIndex in xrange( self.lineIndex, len(self.lines) ):
+		for self.lineIndex in xrange(self.lineIndex, len(self.lines)):
 			line = self.lines[self.lineIndex]
 			self.parseLine(line)
 		return self.distanceFeedRate.output.getvalue()
 
 	def getLinearMoveWithFeedRate( self, feedRate, location ):
-		"Get a linear move line with the feedRate."
+		"""Get a linear move line with the feedRate."""
 		return self.distanceFeedRate.getLinearGcodeMovementWithFeedRate( feedRate, location.dropAxis(), location.z )
 
 	def parseInitialization( self, wipeRepository ):
-		'Parse gcode initialization and store the parameters.'
+		"""Parse gcode initialization and store the parameters."""
 		for self.lineIndex in xrange(len(self.lines)):
 			line = self.lines[self.lineIndex]
 			splitLine = gcodec.getSplitLineBeforeBracketSemicolon(line)
@@ -236,7 +235,7 @@ class WipeSkein:
 			self.distanceFeedRate.addLine(line)
 
 	def parseLine(self, line):
-		"Parse a gcode line and add it to the bevel gcode."
+		"""Parse a gcode line and add it to the bevel gcode."""
 		splitLine = gcodec.getSplitLineBeforeBracketSemicolon(line)
 		if len(splitLine) < 1:
 			return
@@ -247,7 +246,7 @@ class WipeSkein:
 		elif firstWord == '(<layer>':
 			settings.printProgress(self.layerIndex, 'wipe')
 			self.layerIndex += 1
-			if self.layerIndex % self.wipePeriod == 0:
+			if not self.layerIndex % self.wipePeriod:
 				self.shouldWipe = True
 		elif firstWord == 'M101':
 			self.extruderActive = True
@@ -257,7 +256,7 @@ class WipeSkein:
 
 
 def main():
-	"Display the wipe dialog."
+	"""Display the wipe dialog."""
 	if len(sys.argv) > 1:
 		writeOutput(' '.join(sys.argv[1 :]))
 	else:

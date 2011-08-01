@@ -33,12 +33,12 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getNewRepository():
-	'Get new repository.'
+	"""Get new repository."""
 	return skeinforge_polyfile.PolyfileRepository()
 
 
 def main():
-	"Display the file or directory dialog."
+	"""Display the file or directory dialog."""
 	settings.startMainLoopFromConstructor( getNewRepository() )
 
 if __name__ == "__main__":

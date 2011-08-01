@@ -23,23 +23,23 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getQuadraticPath(xmlElement):
-	"Get the quadratic path."
+	"""Get the quadratic path."""
 	end = evaluate.getVector3FromXMLElement(xmlElement)
 	previousXMLElement = xmlElement.getPreviousXMLElement()
-	if previousXMLElement == None:
+	if previousXMLElement is None:
 		print('Warning, can not get previousXMLElement in getQuadraticPath in quadratic for:')
 		print(xmlElement)
 		return [end]
 	begin = xmlElement.getPreviousVertex(Vector3())
 	controlPoint = evaluate.getVector3ByPrefix(None, 'controlPoint', xmlElement)
-	if controlPoint == None:
+	if controlPoint is None:
 		oldControlPoint = evaluate.getVector3ByPrefixes(['controlPoint','controlPoint1'], None, previousXMLElement)
-		if oldControlPoint == None:
+		if oldControlPoint is None:
 			oldControlPoint = end
 		controlPoint = begin + begin - oldControlPoint
 		evaluate.addVector3ToXMLElement('controlPoint', controlPoint, xmlElement)
 	return svg_reader.getQuadraticPoints(begin, controlPoint, end, lineation.getNumberOfBezierPoints(begin, end, xmlElement))
 
 def processXMLElement(xmlElement):
-	"Process the xml element."
+	"""Process the xml element."""
 	xmlElement.parent.xmlObject.vertexes += getQuadraticPath(xmlElement)

@@ -18,16 +18,16 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def addToMenu( master, menu, repository, window ):
-	"Add a tool plugin menu."
+	"""Add a tool plugin menu."""
 	settings.addPluginsParentToMenu( skeinforge_meta.getPluginsDirectoryPath(), menu, __file__, skeinforge_meta.getPluginFileNames() )
 
 def getNewRepository():
-	'Get new repository.'
+	"""Get new repository."""
 	return skeinforge_meta.MetaRepository()
 
 
 def main():
-	"Display the meta dialog."
+	"""Display the meta dialog."""
 	settings.startMainLoopFromConstructor( getNewRepository() )
 
 if __name__ == "__main__":

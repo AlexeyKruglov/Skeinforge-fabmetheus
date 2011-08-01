@@ -17,14 +17,14 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getNewRepository():
-	'Get new repository.'
+	"""Get new repository."""
 	return HelpRepository()
 
 
 class HelpRepository:
-	"A class to handle the help settings."
+	"""A class to handle the help settings."""
 	def __init__(self):
-		"Set the default settings, execute title & settings fileName."
+		"""Set the default settings, execute title & settings fileName."""
 		skeinforge_profile.addListsToCraftTypeRepository('skeinforge_application.skeinforge_utilities.skeinforge_help.html', self)
 		settings.LabelDisplay().getFromName('- Announcements -', self )
 		settings.LabelDisplay().getFromName('Fabmetheus Blog, Announcements & Questions:', self )
@@ -62,5 +62,5 @@ class HelpRepository:
 		self.wikiManualPrimary.setUpdateFunction( self.save )
 
 	def save(self):
-		"Write the entities."
+		"""Write the entities."""
 		settings.writeSettingsPrintMessage(self)

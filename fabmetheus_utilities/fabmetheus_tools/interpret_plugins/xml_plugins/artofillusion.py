@@ -35,7 +35,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getCarvingFromParser( xmlParser ):
-	"Get the carving for the parser."
+	"""Get the carving for the parser."""
 	booleanGeometry = boolean_geometry.BooleanGeometry()
 	artOfIllusionElement = xmlParser.getRoot()
 	artOfIllusionElement.xmlObject = booleanGeometry
@@ -47,7 +47,7 @@ def getCarvingFromParser( xmlParser ):
 	return booleanGeometry
 
 def getCarvableObject(globalObject, object, xmlElement):
-	"Get new carvable object info."
+	"""Get new carvable object info."""
 	object.xmlObject = globalObject()
 	object.xmlObject.xmlElement = object
 	object.attributeDictionary['id'] = xmlElement.getFirstChildWithClassName('name').text
@@ -59,7 +59,7 @@ def getCarvableObject(globalObject, object, xmlElement):
 	return object.xmlObject
 
 def getTransformXMLElement( coords, transformName ):
-	"Get the transform attributes."
+	"""Get the transform attributes."""
 	transformXMLElement = coords.getFirstChildWithClassName( transformName )
 	if len( transformXMLElement.attributeDictionary ) < 16:
 		if 'bf:ref' in transformXMLElement.attributeDictionary:
@@ -68,8 +68,8 @@ def getTransformXMLElement( coords, transformName ):
 	return transformXMLElement
 
 def processXMLElement( archivableObjects, parent, xmlElement ):
-	"Add the object info if it is carvable."
-	if xmlElement == None:
+	"""Add the object info if it is carvable."""
+	if xmlElement is None:
 		return
 	object = xmlElement.getFirstChildWithClassName('object')
 	if 'bf:type' not in object.attributeDictionary:
@@ -85,15 +85,15 @@ def processXMLElement( archivableObjects, parent, xmlElement ):
 	archivableObjects.append(archivableObject)
 
 def removeListArtOfIllusionFromDictionary( dictionary, scrubKeys ):
-	"Remove the list and art of illusion keys from the dictionary."
+	"""Remove the list and art of illusion keys from the dictionary."""
 	euclidean.removeElementsFromDictionary( dictionary, ['bf:id', 'bf:type'] )
 	euclidean.removeElementsFromDictionary( dictionary, scrubKeys )
 
 
 class BooleanSolid( boolean_solid.BooleanSolid ):
-	"An Art of Illusion CSG object info."
+	"""An Art of Illusion CSG object info."""
 	def setToArtOfIllusionDictionary(self):
-		"Set the shape of this carvable object info."
+		"""Set the shape of this carvable object info."""
 		processXMLElement( self.archivableObjects, self.xmlElement, self.xmlElement.getFirstChildWithClassName('obj1') )
 		processXMLElement( self.archivableObjects, self.xmlElement, self.xmlElement.getFirstChildWithClassName('obj2') )
 		operationString = self.xmlElement.attributeDictionary['operation']
@@ -104,9 +104,9 @@ class BooleanSolid( boolean_solid.BooleanSolid ):
 
 
 class Cube( cube.Cube ):
-	"An Art of Illusion Cube object."
+	"""An Art of Illusion Cube object."""
 	def setToArtOfIllusionDictionary(self):
-		"Set the shape of this carvable object info."
+		"""Set the shape of this carvable object info."""
 		self.inradius = Vector3(
 			float( self.xmlElement.attributeDictionary['halfx'] ),
 			float( self.xmlElement.attributeDictionary['halfy'] ),
@@ -119,9 +119,9 @@ class Cube( cube.Cube ):
 
 
 class Cylinder(cylinder.Cylinder):
-	"An Art of Illusion Cylinder object."
+	"""An Art of Illusion Cylinder object."""
 	def setToArtOfIllusionDictionary(self):
-		"Set the shape of this carvable object info."
+		"""Set the shape of this carvable object info."""
 		self.inradius = Vector3()
 		self.inradius.x = float(self.xmlElement.attributeDictionary['rx'])
 		self.inradius.y = float(self.xmlElement.attributeDictionary['rz'])
@@ -137,9 +137,9 @@ class Cylinder(cylinder.Cylinder):
 
 
 class Group( group.Group ):
-	"An Art of Illusion Group object."
+	"""An Art of Illusion Group object."""
 	def setToArtOfIllusionDictionary(self):
-		"Set the shape of this group."
+		"""Set the shape of this group."""
 		childrenElement = self.xmlElement.parent.getFirstChildWithClassName('children')
 		children = childrenElement.getChildrenWithClassName('bf:Elem')
 		for child in children:
@@ -148,9 +148,9 @@ class Group( group.Group ):
 
 
 class Sphere( sphere.Sphere ):
-	"An Art of Illusion Sphere object."
+	"""An Art of Illusion Sphere object."""
 	def setToArtOfIllusionDictionary(self):
-		"Set the shape of this carvable object."
+		"""Set the shape of this carvable object."""
 		self.radius = Vector3(
 			float( self.xmlElement.attributeDictionary['rx'] ),
 			float( self.xmlElement.attributeDictionary['ry'] ),
@@ -163,9 +163,9 @@ class Sphere( sphere.Sphere ):
 
 
 class TriangleMesh(triangle_mesh.TriangleMesh):
-	"An Art of Illusion triangle mesh object."
+	"""An Art of Illusion triangle mesh object."""
 	def setToArtOfIllusionDictionary(self):
-		"Set the shape of this carvable object info."
+		"""Set the shape of this carvable object info."""
 		vertexElement = self.xmlElement.getFirstChildWithClassName('vertex')
 		vertexPointElements = vertexElement.getChildrenWithClassName('bf:Elem')
 		for vertexPointElement in vertexPointElements:

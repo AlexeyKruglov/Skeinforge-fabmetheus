@@ -26,19 +26,19 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getCarving(fileName=''):
-	"Get the carving for the csv file."
+	"""Get the carving for the csv file."""
 	csvText = archive.getFileText(fileName)
 	if csvText == '':
 		return None
 	csvParser = CSVSimpleParser( fileName, None, csvText )
 	lowerClassName = csvParser.getRoot().className.lower()
 	pluginModule = archive.getModuleWithDirectoryPath( getPluginsDirectoryPath(), lowerClassName )
-	if pluginModule == None:
+	if pluginModule is None:
 		return None
 	return pluginModule.getCarvingFromParser( csvParser )
 
 def getLineDictionary(line):
-	"Get the line dictionary."
+	"""Get the line dictionary."""
 	lineDictionary = {}
 	splitLine = line.split('\t')
 	for splitLineIndex in xrange( len(splitLine) ):
@@ -48,14 +48,14 @@ def getLineDictionary(line):
 	return lineDictionary
 
 def getPluginsDirectoryPath():
-	"Get the plugins directory path."
+	"""Get the plugins directory path."""
 	return archive.getAbsoluteFrozenFolderPath( __file__, 'xml_plugins')
 
 
 class CSVElement( xml_simple_reader.XMLElement ):
-	"A csv element."
+	"""A csv element."""
 	def continueParsingObject( self, line, lineStripped ):
-		"Parse replaced line."
+		"""Parse replaced line."""
 		splitLineStripped = lineStripped.split('\t')
 		key = splitLineStripped[0]
 		value = splitLineStripped[1]
@@ -63,8 +63,8 @@ class CSVElement( xml_simple_reader.XMLElement ):
 		self.addToIdentifierDictionaryIFIdentifierExists()
 
 	def continueParsingTable( self, line, lineStripped ):
-		"Parse replaced line."
-		if self.headingDictionary == None:
+		"""Parse replaced line."""
+		if self.headingDictionary is None:
 			self.headingDictionary = getLineDictionary(line)
 			return
 		csvElement = self
@@ -80,12 +80,12 @@ class CSVElement( xml_simple_reader.XMLElement ):
 				value = lineDictionary[ columnIndex ]
 				csvElement.attributeDictionary[key] = value
 		csvElement.addToIdentifierDictionaryIFIdentifierExists()
-		if len( csvElement.attributeDictionary ) == 0 or oldAttributeDictionaryLength == 0 or self.parent == None:
+		if len( csvElement.attributeDictionary ) == 0 or oldAttributeDictionaryLength == 0 or self.parent is None:
 			return
 		self.parent.children.append( csvElement )
 
 	def getElementFromObject( self, leadingTabCount, lineStripped, oldElement ):
-		"Parse replaced line."
+		"""Parse replaced line."""
 		splitLine = lineStripped.split('\t')
 		self.className = splitLine[1]
 		if leadingTabCount == 0:
@@ -97,21 +97,21 @@ class CSVElement( xml_simple_reader.XMLElement ):
 		return self
 
 	def getElementFromTable( self, leadingTabCount, lineStripped, oldElement ):
-		"Parse replaced line."
+		"""Parse replaced line."""
 		self.headingDictionary = None
 		return self.getElementFromObject( leadingTabCount, lineStripped, oldElement )
 
 	def getNumberOfParents(self):
-		"Get the number of parents."
-		if self.parent == None:
+		"""Get the number of parents."""
+		if self.parent is None:
 			return 0
 		return self.parent.getNumberOfParents() + 1
 
 
 class CSVSimpleParser( xml_simple_reader.XMLSimpleReader ):
-	"A simple csv parser."
+	"""A simple csv parser."""
 	def __init__( self, parent, csvText ):
-		"Add empty lists."
+		"""Add empty lists."""
 		self.continueFunction = None
 		self.extraLeadingTabCount = None
 		self.lines = archive.getTextLines( csvText )
@@ -121,10 +121,10 @@ class CSVSimpleParser( xml_simple_reader.XMLSimpleReader ):
 			self.parseLine(line)
 
 	def getNewCSVElement( self, leadingTabCount, lineStripped ):
-		"Get a new csv element."
-		if self.root != None and self.extraLeadingTabCount == None:
+		"""Get a new csv element."""
+		if self.root is not None and self.extraLeadingTabCount is None:
 			self.extraLeadingTabCount = 1 - leadingTabCount
-		if self.extraLeadingTabCount != None:
+		if self.extraLeadingTabCount is not None:
 			leadingTabCount += self.extraLeadingTabCount
 		if lineStripped[ : len('_table') ] == '_table' or lineStripped[ : len('_t') ] == '_t':
 			self.oldCSVElement = CSVElement().getElementFromTable( leadingTabCount, lineStripped, self.oldCSVElement )
@@ -134,7 +134,7 @@ class CSVSimpleParser( xml_simple_reader.XMLSimpleReader ):
 		self.continueFunction = self.oldCSVElement.continueParsingObject
 
 	def parseLine(self, line):
-		"Parse a gcode line and add it to the inset skein."
+		"""Parse a gcode line and add it to the inset skein."""
 		lineStripped = line.lstrip()
 		if len( lineStripped ) < 1:
 			return
@@ -142,16 +142,16 @@ class CSVSimpleParser( xml_simple_reader.XMLSimpleReader ):
 		leadingTabCount = leadingPart.count('\t')
 		if lineStripped[ : len('_') ] == '_':
 			self.getNewCSVElement( leadingTabCount, lineStripped )
-			if self.root == None:
+			if self.root is None:
 				self.root = self.oldCSVElement
 				self.root.parser = self
 			return
-		if self.continueFunction != None:
+		if self.continueFunction is not None:
 			self.continueFunction( line, lineStripped )
 
 
 def main():
-	"Display the inset dialog."
+	"""Display the inset dialog."""
 	if len(sys.argv) > 1:
 		getCarving(' '.join(sys.argv[1 :]))
 

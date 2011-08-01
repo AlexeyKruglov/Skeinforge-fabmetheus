@@ -17,7 +17,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def processChildrenByIndexValue( function, index, indexValue, value, xmlElement ):
-	"Process children by index value."
+	"""Process children by index value."""
 	if indexValue.indexName != '':
 		function.localDictionary[ indexValue.indexName ] = index
 	if indexValue.valueName != '':
@@ -25,10 +25,10 @@ def processChildrenByIndexValue( function, index, indexValue, value, xmlElement 
 	function.processChildren(xmlElement)
 
 def processXMLElement(xmlElement):
-	"Process the xml element."
-	if xmlElement.xmlObject == None:
+	"""Process the xml element."""
+	if xmlElement.xmlObject is None:
 		xmlElement.xmlObject = IndexValue(xmlElement)
-	if xmlElement.xmlObject.inSplitWords == None:
+	if xmlElement.xmlObject.inSplitWords is None:
 		return
 	xmlProcessor = xmlElement.getXMLProcessor()
 	if len( xmlProcessor.functions ) < 1:
@@ -49,9 +49,9 @@ def processXMLElement(xmlElement):
 
 
 class IndexValue:
-	"Class to get the in attribute, the index name and the value name."
+	"""Class to get the in attribute, the index name and the value name."""
 	def __init__(self, xmlElement):
-		"Initialize."
+		"""Initialize."""
 		self.inSplitWords = None
 		self.indexName = ''
 		if 'index' in xmlElement.attributeDictionary:

@@ -92,13 +92,11 @@ import __init__
 from fabmetheus_utilities import archive
 from fabmetheus_utilities import euclidean
 from fabmetheus_utilities import gcodec
-from fabmetheus_utilities import intercircle
 from fabmetheus_utilities.fabmetheus_tools import fabmetheus_interpret
 from fabmetheus_utilities import settings
 from skeinforge_application.skeinforge_utilities import skeinforge_craft
 from skeinforge_application.skeinforge_utilities import skeinforge_polyfile
 from skeinforge_application.skeinforge_utilities import skeinforge_profile
-import math
 import sys
 
 
@@ -108,66 +106,64 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getCraftedText( fileName, text='', repository=None):
-	"Speed the file or text."
+	"""Speed the file or text."""
 	return getCraftedTextFromText(archive.getTextIfEmpty(fileName, text), repository)
 
 def getCraftedTextFromText(gcodeText, repository=None):
-	"Speed a gcode linear move text."
+	"""Speed a gcode linear move text."""
 	if gcodec.isProcedureDoneOrFileIsEmpty( gcodeText, 'speed'):
 		return gcodeText
-	if repository == None:
+	if repository is None:
 		repository = settings.getReadRepository( SpeedRepository() )
 	if not repository.activateSpeed.value:
 		return gcodeText
 	return SpeedSkein().getCraftedGcode(gcodeText, repository)
 
 def getNewRepository():
-	'Get new repository.'
+	"""Get new repository."""
 	return SpeedRepository()
 
 def writeOutput(fileName, shouldAnalyze=True):
-	"Speed a gcode linear move file."
+	"""Speed a gcode linear move file."""
 	skeinforge_craft.writeChainTextWithNounMessage(fileName, 'speed', shouldAnalyze)
 
 
 class SpeedRepository:
-	"A class to handle the speed settings."
+	"""A class to handle the speed settings."""
 	def __init__(self):
-		"Set the default settings, execute title & settings fileName."
+		"""Set the default settings, execute title & settings fileName."""
 		skeinforge_profile.addListsToCraftTypeRepository('skeinforge_application.skeinforge_plugins.craft_plugins.speed.html', self )
 		self.fileNameInput = settings.FileNameInput().getFromFileName( fabmetheus_interpret.getGNUTranslatorGcodeFileTypeTuples(), 'Open File for Speed', self, '')
 		self.openWikiManualHelpPage = settings.HelpPage().getOpenFromAbsolute('http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Speed')
 		self.activateSpeed = settings.BooleanSetting().getFromValue('Activate Speed:', self, True )
 		self.addFlowRate = settings.BooleanSetting().getFromValue('Add Flow Rate:', self, True )
 		settings.LabelSeparator().getFromRepository(self)
-		settings.LabelDisplay().getFromName('- Bridge -', self )
-		self.bridgeFeedRateMultiplier = settings.FloatSpin().getFromValue( 0.8, 'Bridge Feed Rate Multiplier (ratio):', self, 1.2, 1.0 )
-		self.bridgeFlowRateMultiplier = settings.FloatSpin().getFromValue( 0.8, 'Bridge Flow Rate Multiplier (ratio):', self, 1.2, 1.0 )
+		settings.LabelDisplay().getFromName('- Main Feedrate Settings -', self )
+		self.feedRatePerSecond = settings.FloatSpin().getFromValue( 20.0, 'Main Feed Rate (mm/s):', self, 140.0, 60.0 )
+		self.flowRateSetting = settings.FloatSpin().getFromValue( 0.5, 'Main Flow Rate  (scaler):', self, 1.5, 1.0 )
+		self.orbitalFeedRateOverOperatingFeedRate = settings.FloatSpin().getFromValue( 0.1, 'Feed Rate ratio for Orbiting move (ratio):', self, 0.9, 0.5 )
 		settings.LabelSeparator().getFromRepository(self)
-		settings.LabelDisplay().getFromName('- Duty Cyle -', self )
-		self.dutyCycleAtBeginning = settings.FloatSpin().getFromValue( 0.0, 'Duty Cyle at Beginning (portion):', self, 1.0, 1.0 )
-		self.dutyCycleAtEnding = settings.FloatSpin().getFromValue( 0.0, 'Duty Cyle at Ending (portion):', self, 1.0, 0.0 )
+		settings.LabelDisplay().getFromName('- Perimeter Printing -', self )
+		self.perimeterFeedRateOverOperatingFeedRate = settings.FloatSpin().getFromValue( 20.0, 'Perimeter Feed Rate (mm/s):', self, 80.0, 30.0 )
+		self.perimeterFlowRateOverOperatingFlowRate = settings.FloatSpin().getFromValue( 0.5, 'Perimeter Flow Rate (scaler):', self, 1.5, 1.0 )
 		settings.LabelSeparator().getFromRepository(self)
-		self.feedRatePerSecond = settings.FloatSpin().getFromValue( 2.0, 'Feed Rate (mm/s):', self, 50.0, 16.0 )
-		self.flowRateSetting = settings.FloatSpin().getFromValue( 50.0, 'Flow Rate Setting (float):', self, 250.0, 210.0 )
-		self.orbitalFeedRateOverOperatingFeedRate = settings.FloatSpin().getFromValue( 0.1, 'Orbital Feed Rate over Operating Feed Rate (ratio):', self, 0.9, 0.5 )
+		settings.LabelDisplay().getFromName('- Bridge Layers -', self )
+		self.bridgeFeedRateMultiplier = settings.FloatSpin().getFromValue( 0.5, 'Bridge Feed Rate (ratio):', self, 1.5, 1.0 )
+		self.bridgeFlowRateMultiplier = settings.FloatSpin().getFromValue( 0.5, 'Bridge Flow Rate (scaler):', self, 1.3, 1.0 )
 		settings.LabelSeparator().getFromRepository(self)
-		settings.LabelDisplay().getFromName('- Perimeter -', self )
-		self.perimeterFeedRateOverOperatingFeedRate = settings.FloatSpin().getFromValue( 0.5, 'Perimeter Feed Rate over Operating Feed Rate (ratio):', self, 1.0, 1.0 )
-		self.perimeterFlowRateOverOperatingFlowRate = settings.FloatSpin().getFromValue( 0.5, 'Perimeter Flow Rate over Operating Flow Rate (ratio):', self, 1.0, 1.0 )
 		settings.LabelSeparator().getFromRepository(self)
-		self.travelFeedRatePerSecond = settings.FloatSpin().getFromValue( 2.0, 'Travel Feed Rate (mm/s):', self, 50.0, 16.0 )
+		self.travelFeedRatePerSecond = settings.FloatSpin().getFromValue( 40.0, 'Travel Feed Rate (mm/s):', self, 200.0, 130.0 )
 		self.executeTitle = 'Speed'
 
 	def execute(self):
-		"Speed button has been clicked."
+		"""Speed button has been clicked."""
 		fileNames = skeinforge_polyfile.getFileOrDirectoryTypesUnmodifiedGcode(self.fileNameInput.value, fabmetheus_interpret.getImportPluginFileNames(), self.fileNameInput.wasCancelled)
 		for fileName in fileNames:
 			writeOutput(fileName)
 
 
 class SpeedSkein:
-	"A class to speed a skein of extrusions."
+	"""A class to speed a skein of extrusions."""
 	def __init__(self):
 		self.distanceFeedRate = gcodec.DistanceFeedRate()
 		self.feedRatePerSecond = 16.0
@@ -179,21 +175,21 @@ class SpeedSkein:
 		self.oldFlowRateString = None
 
 	def addFlowRateLineIfNecessary(self):
-		"Add flow rate line."
+		"""Add flow rate line."""
 		flowRateString = self.getFlowRateString()
 		if flowRateString != self.oldFlowRateString:
 			self.distanceFeedRate.addLine('M108 S' + flowRateString )
 		self.oldFlowRateString = flowRateString
 
 	def addParameterString( self, firstWord, parameterWord ):
-		"Add parameter string."
+		"""Add parameter string."""
 		if parameterWord == '':
 			self.distanceFeedRate.addLine(firstWord)
 			return
 		self.distanceFeedRate.addParameter( firstWord, parameterWord )
 
 	def getCraftedGcode(self, gcodeText, repository):
-		"Parse gcode text and store the speed gcode."
+		"""Parse gcode text and store the speed gcode."""
 		self.repository = repository
 		self.feedRatePerSecond = repository.feedRatePerSecond.value
 		self.travelFeedRateMinute = 60.0 * self.repository.travelFeedRatePerSecond.value
@@ -201,36 +197,35 @@ class SpeedSkein:
 		self.parseInitialization()
 		for line in self.lines[self.lineIndex :]:
 			self.parseLine(line)
-		self.addParameterString('M113', self.repository.dutyCycleAtEnding.value ) # Set duty cycle .
 		return self.distanceFeedRate.output.getvalue()
 
 	def getFlowRateString(self):
-		"Get the flow rate string."
+		"""Get the flow rate string."""
 		if not self.repository.addFlowRate.value:
 			return None
-		flowRate = self.repository.flowRateSetting.value
+		flowRate = self.repository.flowRateSetting.value * self.feedRatePerSecond
 		if self.isBridgeLayer:
-			flowRate *= self.repository.bridgeFlowRateMultiplier.value
+			flowRate *= self.repository.bridgeFlowRateMultiplier.value * self.repository.bridgeFeedRateMultiplier.value
 		if self.isPerimeterPath:
-			flowRate *= self.repository.perimeterFlowRateOverOperatingFlowRate.value
+			flowRate = self.repository.perimeterFlowRateOverOperatingFlowRate.value * self.repository.perimeterFeedRateOverOperatingFeedRate.value
 		return euclidean.getFourSignificantFigures( flowRate )
 
 	def getSpeededLine(self, line, splitLine):
-		'Get gcode line with feed rate.'
+		"""Get gcode line with feed rate."""
 		if gcodec.getIndexOfStartingWithSecond('F', splitLine) > 0:
 			return line
 		feedRateMinute = 60.0 * self.feedRatePerSecond
 		if self.isBridgeLayer:
-			feedRateMinute *= self.repository.bridgeFeedRateMultiplier.value
+			feedRateMinute *= self.repository.bridgeFeedRateMultiplier.value 
 		if self.isPerimeterPath:
-			feedRateMinute *= self.repository.perimeterFeedRateOverOperatingFeedRate.value
+			feedRateMinute = self.repository.perimeterFeedRateOverOperatingFeedRate.value * 60
 		self.addFlowRateLineIfNecessary()
 		if not self.isExtruderActive:
-			feedRateMinute = self.travelFeedRateMinute
+			feedRateMinute = self.travelFeedRateMinute 
 		return self.distanceFeedRate.getLineWithFeedRate(feedRateMinute, line, splitLine)
 
 	def parseInitialization(self):
-		'Parse gcode initialization and store the parameters.'
+		"""Parse gcode initialization and store the parameters."""
 		for self.lineIndex in xrange(len(self.lines)):
 			line = self.lines[self.lineIndex]
 			splitLine = gcodec.getSplitLineBeforeBracketSemicolon(line)
@@ -252,14 +247,13 @@ class SpeedSkein:
 			self.distanceFeedRate.addLine(line)
 
 	def parseLine(self, line):
-		"Parse a gcode line and add it to the speed skein."
+		"""Parse a gcode line and add it to the speed skein."""
 		splitLine = gcodec.getSplitLineBeforeBracketSemicolon(line)
 		if len(splitLine) < 1:
 			return
 		firstWord = splitLine[0]
 		if firstWord == '(<crafting>)':
 			self.distanceFeedRate.addLine(line)
-			self.addParameterString('M113', self.repository.dutyCycleAtBeginning.value ) # Set duty cycle .
 			return
 		elif firstWord == 'G1':
 			line = self.getSpeededLine(line, splitLine)
@@ -280,7 +274,7 @@ class SpeedSkein:
 
 
 def main():
-	"Display the speed dialog."
+	"""Display the speed dialog."""
 	if len(sys.argv) > 1:
 		writeOutput(' '.join(sys.argv[1 :]))
 	else:

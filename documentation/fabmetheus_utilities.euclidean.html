@@ -1,5 +1,5 @@
 
-<!doctype html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html><head><title>Python: module fabmetheus_utilities.euclidean</title>
 </head><body bgcolor="#f0f0f8">
 
@@ -33,7 +33,7 @@ Below are examples of euclidean use.<br>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#aa55cc">
 <td colspan=3 valign=bottom>&nbsp;<br>
-<font color="#fffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
     
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="__init__.html">__init__</a><br>
@@ -308,6 +308,7 @@ Methods inherited from <a href="fabmetheus_utilities.euclidean.html#NestedRing">
  <dl><dt><a name="-getAreaLoop"><strong>getAreaLoop</strong></a>(loop)</dt><dd><tt>Get&nbsp;the&nbsp;area&nbsp;of&nbsp;a&nbsp;complex&nbsp;polygon.</tt></dd></dl>
  <dl><dt><a name="-getAreaLoopAbsolute"><strong>getAreaLoopAbsolute</strong></a>(loop)</dt><dd><tt>Get&nbsp;the&nbsp;absolute&nbsp;area&nbsp;of&nbsp;a&nbsp;complex&nbsp;polygon.</tt></dd></dl>
  <dl><dt><a name="-getAreaLoops"><strong>getAreaLoops</strong></a>(loops)</dt><dd><tt>Get&nbsp;the&nbsp;area&nbsp;of&nbsp;a&nbsp;list&nbsp;of&nbsp;complex&nbsp;polygons.</tt></dd></dl>
+ <dl><dt><a name="-getAreaRadiusMultiplier"><strong>getAreaRadiusMultiplier</strong></a>(sides)</dt><dd><tt>Get&nbsp;the&nbsp;area&nbsp;radius&nbsp;multiplier&nbsp;for&nbsp;the&nbsp;polygon.</tt></dd></dl>
  <dl><dt><a name="-getAreaVector3LoopAbsolute"><strong>getAreaVector3LoopAbsolute</strong></a>(loop)</dt><dd><tt>Get&nbsp;the&nbsp;absolute&nbsp;area&nbsp;of&nbsp;a&nbsp;vector3&nbsp;polygon.</tt></dd></dl>
  <dl><dt><a name="-getAroundLoop"><strong>getAroundLoop</strong></a>(begin, end, loop)</dt><dd><tt>Get&nbsp;an&nbsp;arc&nbsp;around&nbsp;a&nbsp;loop.</tt></dd></dl>
  <dl><dt><a name="-getAwayPoints"><strong>getAwayPoints</strong></a>(points, radius)</dt><dd><tt>Get&nbsp;a&nbsp;path&nbsp;with&nbsp;only&nbsp;the&nbsp;points&nbsp;that&nbsp;are&nbsp;far&nbsp;enough&nbsp;away&nbsp;from&nbsp;each&nbsp;other.</tt></dd></dl>
@@ -318,6 +319,7 @@ Methods inherited from <a href="fabmetheus_utilities.euclidean.html#NestedRing">
  <dl><dt><a name="-getBottomByPaths"><strong>getBottomByPaths</strong></a>(paths)</dt><dd><tt>Get&nbsp;the&nbsp;bottom&nbsp;of&nbsp;the&nbsp;paths.</tt></dd></dl>
  <dl><dt><a name="-getClippedAtEndLoopPath"><strong>getClippedAtEndLoopPath</strong></a>(clip, loopPath)</dt><dd><tt>Get&nbsp;a&nbsp;clipped&nbsp;loop&nbsp;path.</tt></dd></dl>
  <dl><dt><a name="-getClippedLoopPath"><strong>getClippedLoopPath</strong></a>(clip, loopPath)</dt><dd><tt>Get&nbsp;a&nbsp;clipped&nbsp;loop&nbsp;path.</tt></dd></dl>
+ <dl><dt><a name="-getClippedSimplifiedLoopPath"><strong>getClippedSimplifiedLoopPath</strong></a>(clip, loopPath, radius)</dt><dd><tt>Get&nbsp;a&nbsp;clipped&nbsp;and&nbsp;simplified&nbsp;loop&nbsp;path.</tt></dd></dl>
  <dl><dt><a name="-getComplexByCommaString"><strong>getComplexByCommaString</strong></a>(valueCommaString)</dt><dd><tt>Get&nbsp;the&nbsp;commaString&nbsp;as&nbsp;a&nbsp;complex.</tt></dd></dl>
  <dl><dt><a name="-getComplexByWords"><strong>getComplexByWords</strong></a>(words, wordIndex<font color="#909090">=0</font>)</dt><dd><tt>Get&nbsp;the&nbsp;complex&nbsp;by&nbsp;the&nbsp;first&nbsp;two&nbsp;words.</tt></dd></dl>
  <dl><dt><a name="-getComplexDefaultByDictionary"><strong>getComplexDefaultByDictionary</strong></a>(defaultComplex, dictionary, key)</dt><dd><tt>Get&nbsp;the&nbsp;value&nbsp;as&nbsp;a&nbsp;complex.</tt></dd></dl>
@@ -501,8 +503,9 @@ Methods inherited from <a href="fabmetheus_utilities.euclidean.html#NestedRing">
 <strong>__date__</strong> = '$Date: 2008/21/04 $'<br>
 <strong>__license__</strong> = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'<br>
 <strong>absolute_import</strong> = _Feature((2, 5, 0, 'alpha', 1), (2, 7, 0, 'alpha', 0), 16384)<br>
-<strong>globalGoldenAngle</strong> = 3.8832220774509332<br>
-<strong>globalGoldenRatio</strong> = 1.6180339887498949</td></tr></table><p>
+<strong>globalGoldenAngle</strong> = 3.883222077450933<br>
+<strong>globalGoldenRatio</strong> = 1.618033988749895<br>
+<strong>globalTau</strong> = 6.283185307179586</td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#7799ee">
 <td colspan=3 valign=bottom>&nbsp;<br>

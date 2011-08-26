@@ -333,7 +333,7 @@ class InsetSkein:
 	def addInset(self, rotatedLoopLayer):
 		"""Add inset to the layer."""
 		alreadyFilledArounds = []
-		extrusionSpacingHalfWidth = self.halfExtrusionWidth
+		halfWidth = self.halfExtrusionWidth
 		if rotatedLoopLayer.rotation is not None:
 			extrusionSpacingHalfWidth *= self.repository.bridgeWidthMultiplier.value
 			self.distanceFeedRate.addTagBracketedLine('bridgeRotation', rotatedLoopLayer.rotation)

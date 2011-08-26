@@ -157,16 +157,15 @@ class SkinSkein:
 			elif firstWord == '(<extrusionHeight>':
 				self.quarterLayerThickness = 0.25 * float(splitLine[1])
 				self.halfLayerThickness = 0.5 * float(splitLine[1])
-				self.LayerThickness = float(splitLine[1])
 			elif firstWord == '(<operatingFlowRate>':
 				self.oldFlowRate = float(splitLine[1])
 			elif firstWord == '(<extrusionWidth>':
 				extrusionWidth = float(splitLine[1])
 				self.quarterPerimeterWidth = 0.25 * extrusionWidth
 				self.halfPerimeterWidth = 0.5 * extrusionWidth
-				self.PerimeterWidth = extrusionWidth
-				self.clipLength = (self.repository.clipOverPerimeterWidth.value * self.halfLayerThickness * (0.7853))/2
-			elif firstWord == '(<travelFeedRate>': self.travelFeedRateMinute = 60.0 * float(splitLine[1])
+				self.clipLength = (self.halfLayerThickness - (self.repository.clipOverPerimeterWidth.value * self.quarterLayerThickness * ((0.7853))))*4
+			elif firstWord == '(<travelFeedRate>':
+				self.travelFeedRateMinute = 60.0 * float(splitLine[1])
 			self.distanceFeedRate.addLine(line)
 
 	def parseLine(self, line):

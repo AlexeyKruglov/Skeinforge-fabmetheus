@@ -217,12 +217,12 @@ class SpeedSkein:
 			return line
 		feedRateMinute = self.mainFeed * 60
 		if self.isBridgeLayer:
-			feedRateMinute = self.repository.bridgeFeedRateMultiplier.value * self.mainFeed * 60
+			feedRateMinute *= self.repository.bridgeFeedRateMultiplier.value
 		if self.isPerimeterPath:
 			feedRateMinute = self.repository.perimeterFeed.value * 60
+		self.addFlowRateLineIfNecessary()
 		if not self.isExtruderActive:
 			feedRateMinute = self.travelFeedRate * 60
-		self.addFlowRateLineIfNecessary()
 		return self.distanceFeedRate.getLineWithFeedRate(feedRateMinute, line, splitLine)
 
 	def parseInitialization(self):

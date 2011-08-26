@@ -460,8 +460,8 @@ def getClosestOppositeIntersectionPaths( yIntersectionPaths ):
 	return yCloseToCenterPaths
 
 def getExtraFillLoops(loops, radius):
-	"""Get extra loops between inside and outside loops. Extra perimeters"""
-	greaterThanRadius = radius /0.7853  #todo was  *1.4 ACT (radius /0.7853)  how much the tight spots are covered by the extra loops
+	"""Get extra loops between inside and outside loops."""
+	greaterThanRadius = 1.4 * radius 
 	extraFillLoops = []
 	centers = intercircle.getCentersFromPoints(intercircle.getPointsFromLoops(loops, greaterThanRadius), greaterThanRadius)
 	for center in centers:
@@ -890,6 +890,7 @@ class FillSkein:
 	def __init__(self):
 		self.bridgeWidthMultiplier = 1.0
 		self.distanceFeedRate = gcodec.DistanceFeedRate()
+		self.infillSpacingScaler = 1
 		self.extruderActive = False
 		self.fillInset = 0.18
 		self.isPerimeter = False
@@ -905,18 +906,18 @@ class FillSkein:
 		self.thread = None
 		self.infillSpacing = None
 
-
 	def addFill(self, layerIndex):
 		"""Add fill to the carve layer."""
 		#		if layerIndex > 2:
 		#		return
+		print('calculating bridge layers')
 		settings.printProgressByNumber(layerIndex, len(self.rotatedLayers), 'fill')
 		alreadyFilledArounds = []
 		pixelTable = {}
 		arounds = []
-		betweenWidth = self.repository.infillSpacingScaler.value * self.extrusionWidth*0.5 *(0.7853)
-		self.layerExtrusionSpacing = self.infillSpacing # spacing between fill lines
-		layerFillInset = self.fillInset  # the distance between perimeter incl loops and the fill pattern
+		infillSpacing = self.infillSpacing
+		self.layerExtrusionWidth = self.infillSpacing
+		layerFillInset = self.fillInset
 		rotatedLayer = self.rotatedLayers[layerIndex]
 		self.distanceFeedRate.addLine('(<layer> %s )' % rotatedLayer.z)
 		layerRotation = self.getLayerRotation(layerIndex)
@@ -934,8 +935,8 @@ class FillSkein:
 				extraShells = self.repository.extraShellsBase.value
 		if rotatedLayer.rotation is not None:
 			extraShells = 0
-			betweenWidth *= self.bridgeWidthMultiplier/0.7853  #todo check what is better with or without the normalizer
-			self.layerExtrusionSpacing *= self.bridgeWidthMultiplier
+			infillSpacing *= self.bridgeWidthMultiplier
+			self.layerExtrusionWidth *= self.bridgeWidthMultiplier
 			layerFillInset *= self.bridgeWidthMultiplier
 			self.distanceFeedRate.addLine('(<bridgeRotation> %s )' % rotatedLayer.rotation)
 		aroundInset = 0.25 * self.layerExtrusionSpacing
@@ -957,12 +958,12 @@ class FillSkein:
 				self.isJunctionWide = False
 		rotatedLoops = []
 		#		for nestedRing in rotatedLayer.nestedRings:
-		#			nestedRing.fillBoundaries = intercircle.getInsetLoopsFromLoop( nestedRing.boundary, betweenWidth )
+		#			nestedRing.fillBoundaries = intercircle.getInsetLoopsFromLoop( nestedRing.boundary, infillSpacing )
 		#			nestedRing.lastExistingFillLoops = nestedRing.fillBoundaries
 		nestedRings = euclidean.getOrderedNestedRings(rotatedLayer.nestedRings)
 		#		if isPerimeterPathInSurroundLoops( nestedRings ):
 		#			extraShells = 0
-		createFillForSurroundings(nestedRings, betweenWidth, False)
+		createFillForSurroundings(nestedRings, infillSpacing, False)
 		for extraShellIndex in xrange(extraShells):
 			createFillForSurroundings(nestedRings, self.layerExtrusionSpacing, True)
 		fillLoops = euclidean.getFillOfSurroundings(nestedRings, None)
@@ -1199,11 +1200,14 @@ class FillSkein:
 			self.threadSequence = ['perimeter', 'infill', 'loops']
 		if repository.threadSequencePerimeterLoops.value:
 			self.threadSequence = ['perimeter', 'loops', 'infill']
+		if self.repository.infillPerimeterOverlap.value > 0.45:
+			print('Executing Fill procedure')
+			print('Filling the inside of the Object(s)')
 		self.parseInitialization()
 		if self.extrusionWidth is None:
 			print('Warning, nothing will be done because self.extrusionWidth in getCraftedGcode in FillSkein was None.')
 			return ''
-		self.betweenWidth = self.extrusionWidth * self.repository.infillSpacingScaler.value *(0.7853)
+		self.infillSpacing = (self.extrusionWidth * (0.7853))
 		print('Spacing between parallel lines in fill (mm):', (self.infillSpacing))
 		self.fillInset = self.infillSpacing / self.repository.infillPerimeterOverlap.value
 		print('Fill Overlap over Perimeter (mm):', self.fillInset)

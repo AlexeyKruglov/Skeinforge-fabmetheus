@@ -367,13 +367,20 @@ class RaftRepository:
 		self.supportChoiceExteriorOnly = settings.MenuRadio().getFromMenuButtonDisplay(self.supportMaterialChoice, 'Exterior Only', self, False)
 		self.supportMinimumAngle = settings.FloatSpin().getFromValue(40.0, 'Add support if flatter than (degrees):', self, 80.0, 50.0)
 		self.supportCrossHatch = settings.BooleanSetting().getFromValue('Cross Hatch instead of Lines', self, False)
-		self.interfaceInfillDensity = settings.FloatSpin().getFromValue(0.1, 'Interface/Support Lines Density (ratio):', self, 0.5, 0.25)
-		self.interfaceLayerThicknessOverLayerThickness = settings.FloatSpin().getFromValue(	0.8, 'Interface/Support Layer Thickness over Layer Thickness:', self, 1.5, 1.0)
-		self.supportFeedRate = settings.FloatSpin().getFromValue(10.0, 'Support Feed Rate mm/sec:', self, 50.0,15.0)
-		self.supportFlowRateScaler = settings.FloatSpin().getFromValue(	0.5, 'Support Flow Rate (scaler):', self, 2.0, 1.0)
-		self.supportGapOverPerimeterExtrusionWidth = settings.FloatSpin().getFromValue(	0.5, 'Support Gap over Perimeter Extrusion Width (ratio):', self, 1.5, 1.0)
-		self.raftAdditionalMarginOverLengthPercent = settings.FloatSpin().getFromValue(	0.0, 'Raft/Support extension in (%):', self, 10.0, 0.0)
-		self.raftMargin = settings.FloatSpin().getFromValue(0.0, 'Raft/Support extension in(mm):', self, 5.0, 2.0)
+		self.interfaceInfillDensity = settings.FloatSpin().getFromValue(
+			0.1, 'Interface/Support Lines Density (ratio):', self, 0.5, 0.25)
+		self.interfaceLayerThicknessOverLayerThickness = settings.FloatSpin().getFromValue(
+			0.8, 'Interface/Support Layer Thickness over Layer Thickness:', self, 1.5, 1.0)
+		self.supportFeedRate = settings.FloatSpin().getFromValue(
+			10.0, 'Support Feed Rate mm/sec:', self, 50.0,15.0)
+		self.supportFlowRateScaler = settings.FloatSpin().getFromValue(
+			0.5, 'Support Flow Rate (scaler):', self, 2.0, 1.0)
+		self.supportGapOverPerimeterExtrusionWidth = settings.FloatSpin().getFromValue(
+			0.5, 'Support Gap over Perimeter Extrusion Width (ratio):', self, 1.5, 1.0)
+		self.raftAdditionalMarginOverLengthPercent = settings.FloatSpin().getFromValue(
+			0.0, 'Raft/Support extension in (%):', self, 10.0, 5.0)
+		self.raftMargin = settings.FloatSpin().getFromValue(
+			0.0, 'Raft/Support extension in(mm):', self, 5.0, 2.0)
 		settings.LabelSeparator().getFromRepository(self)
 		settings.LabelDisplay().getFromName('- Name of Support Macro files (gcode) -', self)
 		self.nameOfSupportEndFile = settings.StringSetting().getFromValue('Name of Support End File:', self, 'support_end.gmc')
@@ -381,17 +388,19 @@ class RaftRepository:
 		settings.LabelSeparator().getFromRepository(self)
 		settings.LabelDisplay().getFromName('- Print Adhesion to Printbed Objects first layer -', self)
 		self.operatingNozzleLiftOverLayerThickness = settings.FloatSpin().getFromValue(	-0.1, 'Extra Nozzle clearance over Object(ratio):', self, 0.3, 0.0)
-		self.objectFirstLayerFeedRateInfillMultiplier = settings.FloatSpin().getFromValue(10, 'First Layer Main Feedrate (mm/s):', self, 100, 35)
-		self.objectFirstLayerFeedRatePerimeterMultiplier = settings.FloatSpin().getFromValue(10, 'First Layer Perimeter Feedrate (mm/s):', self, 100, 25)
-		self.objectFirstLayerFlowRateInfillMultiplier = settings.FloatSpin().getFromValue(0.50, 'First Layer Flow Rate Infill(scaler):', self, 1.50, 1.0)
-		self.objectFirstLayerFlowRatePerimeterMultiplier = settings.FloatSpin().getFromValue(0.50, 'First Layer Flow Rate Perimeter(scaler):', self, 1.50, 1.0)
-		self.objectFirstLayerTravelSpeed = settings.FloatSpin().getFromValue(10, 'First Layer Travel Feedrate:', self, 100, 50)
+		
+		self.objectFirstLayerFeedRateInfillMultiplier = settings.FloatSpin().getFromValue(	10, 'First Layer Main Feedrate (mm/s):', self, 100, 35)
+		self.objectFirstLayerFeedRatePerimeterMultiplier = settings.FloatSpin().getFromValue(	10, 'First Layer Perimeter Feedrate (mm/s):', self, 100, 25)
+		self.objectFirstLayerFlowRateInfillMultiplier = settings.FloatSpin().getFromValue(	0.50, 'First Layer Flow Rate Infill(scaler):', self, 1.50, 1.0)
+		self.objectFirstLayerFlowRatePerimeterMultiplier = settings.FloatSpin().getFromValue(	0.50, 'First Layer Flow Rate Perimeter(scaler):', self, 1.50, 1.0)
 		settings.LabelSeparator().getFromRepository(self)
+		
 		settings.LabelDisplay().getFromName('- Interface -', self)
 		self.interfaceLayers = settings.IntSpin().getFromValue(	0, 'Interface Layers (integer):', self, 3, 0)
-		self.interfaceFeedRateMultiplier = settings.FloatSpin().getFromValue(0.7, 'Interface Feed Rate Multiplier (ratio):', self, 1.1, 1.0)
-		self.interfaceFlowRateMultiplier = settings.FloatSpin().getFromValue(0.7, 'Interface Flow Rate Multiplier (ratio):', self, 1.1, 1.0)
-		self.interfaceNozzleLiftOverInterfaceLayerThickness = settings.FloatSpin().getFromValue(0.25, 'Interface Nozzle Lift over Interface Layer Thickness (ratio):', self, 0.85, 0.45)
+		self.interfaceFeedRateMultiplier = settings.FloatSpin().getFromValue(	0.7, 'Interface Feed Rate Multiplier (ratio):', self, 1.1, 1.0)
+		self.interfaceFlowRateMultiplier = settings.FloatSpin().getFromValue(	0.7, 'Interface Flow Rate Multiplier (ratio):', self, 1.1, 1.0)
+		self.interfaceNozzleLiftOverInterfaceLayerThickness = settings.FloatSpin().getFromValue(	0.25, 'Interface Nozzle Lift over Interface Layer Thickness (ratio):', self, 0.85, 0.45)
+		
 		settings.LabelSeparator().getFromRepository(self)
 		settings.LabelDisplay().getFromName('- Base -', self)
 		self.baseLayers = settings.IntSpin().getFromValue(0, 'Base Layers (integer):', self, 3, 0)
@@ -1124,8 +1133,7 @@ class SupportLayer:
 		self.supportLoops = supportLoops
 		self.supportSegmentTable = {}
 		self.xIntersectionsTable = {}
-#		self.isExtruderActive = False
-        
+       
 	def __repr__(self):
 		"""Get the string representation of this loop layer."""
 		return '%s' % self.supportLoops

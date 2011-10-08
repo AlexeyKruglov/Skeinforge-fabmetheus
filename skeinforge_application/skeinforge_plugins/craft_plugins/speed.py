@@ -182,14 +182,20 @@ class SpeedSkein:
 		self.isPerimeterPath = False
 		self.lineIndex = 0
 		self.lines = None
-		self.oldFlowRateString = None
+		self.oldFlowRate = None
 
-	def addFlowRateLineIfNecessary(self):
+	def addFlowRateLine(self):
 		"Add flow rate line."
-		flowRateString = self.getFlowRateString()
-		if flowRateString != self.oldFlowRateString:
-			self.distanceFeedRate.addLine('M108 S' + flowRateString )
-		self.oldFlowRateString = flowRateString
+		if not self.repository.addFlowRate.value:
+			return
+		flowRate = self.repository.flowRateSetting.value
+		if self.isBridgeLayer:
+			flowRate *= self.repository.bridgeFlowRateMultiplier.value
+		if self.isPerimeterPath:
+			flowRate *= self.repository.perimeterFlowRateOverOperatingFlowRate.value
+		if flowRate != self.oldFlowRate:
+			self.distanceFeedRate.addLine('M108 S' + euclidean.getFourSignificantFigures(flowRate))
+		self.oldFlowRate = flowRate
 
 	def addParameterString( self, firstWord, parameterWord ):
 		"Add parameter string."
@@ -210,17 +216,6 @@ class SpeedSkein:
 		self.addParameterString('M113', self.repository.dutyCycleAtEnding.value ) # Set duty cycle .
 		return self.distanceFeedRate.output.getvalue()
 
-	def getFlowRateString(self):
-		"Get the flow rate string."
-		if not self.repository.addFlowRate.value:
-			return None
-		flowRate = self.repository.flowRateSetting.value
-		if self.isBridgeLayer:
-			flowRate *= self.repository.bridgeFlowRateMultiplier.value
-		if self.isPerimeterPath:
-			flowRate *= self.repository.perimeterFlowRateOverOperatingFlowRate.value
-		return euclidean.getFourSignificantFigures( flowRate )
-
 	def getSpeededLine(self, line, splitLine):
 		'Get gcode line with feed rate.'
 		if gcodec.getIndexOfStartingWithSecond('F', splitLine) > 0:
@@ -230,7 +225,7 @@ class SpeedSkein:
 			feedRateMinute *= self.repository.bridgeFeedRateMultiplier.value
 		if self.isPerimeterPath:
 			feedRateMinute *= self.repository.perimeterFeedRateOverOperatingFeedRate.value
-		self.addFlowRateLineIfNecessary()
+		self.addFlowRateLine()
 		if not self.isExtruderActive:
 			feedRateMinute = self.travelFeedRateMinute
 		return self.distanceFeedRate.getLineWithFeedRate(feedRateMinute, line, splitLine)
@@ -278,7 +273,7 @@ class SpeedSkein:
 			self.isBridgeLayer = True
 		elif firstWord == '(<layer>':
 			self.isBridgeLayer = False
-			self.addFlowRateLineIfNecessary()
+			self.addFlowRateLine()
 		elif firstWord == '(<perimeter>' or firstWord == '(<perimeterPath>)':
 			self.isPerimeterPath = True
 		elif firstWord == '(</perimeter>)' or firstWord == '(</perimeterPath>)':

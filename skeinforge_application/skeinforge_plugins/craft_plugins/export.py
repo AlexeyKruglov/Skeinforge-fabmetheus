@@ -161,29 +161,15 @@ def writeOutput(fileName, shouldAnalyze=True):
 
 	if repository.addExportSuffix.value:
 		fileNameSuffix += '_export'
-
-	if repository.profileFileExtension.value:
-		profileName = skeinforge_profile.getProfileName(skeinforge_profile.getCraftTypeName())
-		if profileName:
-			fileNameSuffix += '.' + string.replace(profileName, ' ', '_')
-
-	if repository.descriptiveExtension.value:
-		fileNameSuffix += descriptiveExtension()
-
-	if repository.timestampExtension.value:
-		fileNameSuffix += '.'+strftime("%Y%m%d_%H%M%S")
-
-	if repository.archiveProfile.value:
-		profileName = skeinforge_profile.getProfileName(skeinforge_profile.getCraftTypeName())
-		if profileName:
-			profileZipFileName = fileNameSuffix + '.zip'
-			zipper(archive.getProfilesPath(skeinforge_profile.getProfileDirectory()), profileName+'/', profileZipFileName)
-			print('Profile archived to ' + profileZipFileName)
-
-	if repository.exportProfileAsCsv.value:
-		csvExportFilename = fileNameSuffix + '.csv'
-		archive.writeFileText(csvExportFilename, Condenser().readSettings())
-
+	gcodeText = gcodec.getGcodeFileText(fileName, '')
+	if repository.addProfileExtension.value:
+	profileName = skeinforge_profile.getProfileName(skeinforge_profile.getCraftTypeName())
+	if profileName:
+ 		fileNameSuffix += '.' + string.replace(profileName, ' ', '_')
+	if repository.addDescriptiveExtension.value:
+		fileNameSuffix += getDescriptiveExtension(gcodeText)
+	if repository.addTimestampExtension.value:
+		fileNameSuffix += '.' + getFirstValue(gcodeText, '(<timeStampPreface>')
 	fileNameSuffix += '.' + repository.fileExtension.value
 	gcodeText = gcodec.getGcodeFileText(fileName, '')
 	procedures = skeinforge_craft.getProcedures('export', gcodeText)

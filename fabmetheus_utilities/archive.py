@@ -42,6 +42,10 @@ def getAbsoluteFrozenFolderPath(filePath, folderName=''):
 		filePath = os.path.join(filePath, 'skeinforge_application')
 	return getAbsoluteFolderPath(filePath, folderName)
 
+def getAnalyzePluginsDirectoryPath(subName=''):
+	'Get the analyze plugins directory path.'
+	return getJoinedPath(getSkeinforgePluginsPath('analyze_plugins'), subName)
+
 def getCraftPluginsDirectoryPath(subName=''):
 	'Get the craft plugins directory path.'
 	return getJoinedPath(getSkeinforgePluginsPath('craft_plugins'), subName)

@@ -10,16 +10,32 @@ http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Skin
 
 
 ==Operation==
-The default 'Activate Skin' checkbox is off.  When it is on, the functions described below will work, when it is off, the functions will not be called.
+The default 'Activate Skin' checkbox is off.  When it is on, the functions described below will work, when it is off, nothing will be done.
 
 ==Settings==
+===Division===
+====Horizontal Infill Divisions====
+Default: 2
+
+Defines the number of times the skinned infill is divided horizontally.
+
+====Horizontal Perimeter Divisions====
+Default: 1
+
+Defines the number of times the skinned perimeters are divided horizontally.
+
+====Vertical Divisions====
+Default: 2
+
+Defines the number of times the skinned infill and perimeters are divided vertically.
+
 ===Hop When Extruding Infill===
 Default is off.
 
 When selected, the extruder will hop before and after extruding the lower infill in order to avoid the regular thickness threads.
 
-====Layer From====
-Default is one.
+===Layers From===
+Default: 1
 
 Defines which layer of the print the skinning process starts from. It is not wise to set this to zero, skinning the bottom layer is likely to cause the bottom perimeter not to adhere well to the print surface.
 
@@ -81,6 +97,13 @@ def getCraftedTextFromText(gcodeText, repository=None):
 		return gcodeText
 	return SkinSkein().getCraftedGcode(gcodeText, repository)
 
+def getIsMinimumSides(loops, sides=3):
+	'Determine if all the loops have at least the given number of sides.'
+	for loop in loops:
+		if len(loop) < sides:
+			return False
+	return True
+
 def getNewRepository():
 	'Get new repository.'
 	return SkinRepository()
@@ -98,7 +121,12 @@ class SkinRepository:
 		self.fileNameInput = settings.FileNameInput().getFromFileName( fabmetheus_interpret.getGNUTranslatorGcodeFileTypeTuples(), 'Open File for Skin', self, '')
 		self.openWikiManualHelpPage = settings.HelpPage().getOpenFromAbsolute('http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Skin')
 		self.activateSkin = settings.BooleanSetting().getFromValue('Activate Skin', self, False)
-		self.halfWidthPerimeter = settings.BooleanSetting().getFromValue('Half Width Perimeter', self, True)
+		settings.LabelSeparator().getFromRepository(self)
+		settings.LabelDisplay().getFromName('- Division -', self)
+		self.horizontalInfillDivisions = settings.IntSpin().getSingleIncrementFromValue(1, 'Horizontal Infill Divisions (integer):', self, 3, 2)
+		self.horizontalPerimeterDivisions = settings.IntSpin().getSingleIncrementFromValue(1, 'Horizontal Perimeter Divisions (integer):', self, 3, 1)
+		self.verticalDivisions = settings.IntSpin().getSingleIncrementFromValue(1, 'Vertical Divisions (integer):', self, 3, 2)
+		settings.LabelSeparator().getFromRepository(self)
 		self.hopWhenExtrudingInfill = settings.BooleanSetting().getFromValue('Hop When Extruding Infill', self, False)
 		self.layersFrom = settings.IntSpin().getSingleIncrementFromValue(0, 'Layers From (index):', self, 912345678, 1)
 		self.executeTitle = 'Skin'
@@ -142,20 +170,20 @@ class SkinSkein:
 		'Add skinned infill.'
 		if self.infillBoundaries == None:
 			return
+		bottomZ = self.oldLocation.z + self.layerThickness / self.verticalDivisionsFloat - self.layerThickness
 		offsetY = 0.5 * self.skinInfillWidth
-		upperZ = self.oldLocation.z
-		lowerZ = upperZ - self.halfLayerThickness
-		self.addFlowRateLine(0.25 * self.oldFlowRate)
-		self.addSkinnedInfillBoundary(self.infillBoundaries, 0.0, upperZ, lowerZ)
-		self.addSkinnedInfillBoundary(self.infillBoundaries, offsetY, upperZ, upperZ)
+		self.addFlowRateLine(self.oldFlowRate / self.verticalDivisionsFloat / self.horizontalInfillDivisionsFloat)
+		for verticalDivisionIndex in xrange(self.verticalDivisions):
+			z = bottomZ + self.layerThickness / self.verticalDivisionsFloat * float(verticalDivisionIndex)
+			self.addSkinnedInfillBoundary(self.infillBoundaries, offsetY * (verticalDivisionIndex % 2 == 0), self.oldLocation.z, z)
 		self.addFlowRateLine(self.oldFlowRate)
 		self.infillBoundaries = None
 
 	def addSkinnedInfillBoundary(self, infillBoundaries, offsetY, upperZ, z):
 		'Add skinned infill boundary.'
-		aroundInset = 0.25 * self.skinInfillInset
+		aroundInset = 0.267 * self.skinInfillInset
 		arounds = []
-		aroundWidth = 0.25 * self.skinInfillInset
+		aroundWidth = 0.267 * self.skinInfillInset
 		endpoints = []
 		pixelTable = {}
 		rotatedLoops = []
@@ -189,22 +217,26 @@ class SkinSkein:
 		'Add skinned perimeter.'
 		if self.perimeter == None:
 			return
+		bottomZ = self.oldLocation.z + self.layerThickness / self.verticalDivisionsFloat - self.layerThickness
 		perimeterThread = self.perimeter[: -1]
-		lowerZ = self.oldLocation.z - self.halfLayerThickness
-		innerPerimeter = intercircle.getLargestInsetLoopFromLoop(perimeterThread, self.quarterPerimeterWidth)
-		outerPerimeter = intercircle.getLargestInsetLoopFromLoop(perimeterThread, -self.quarterPerimeterWidth)
-		innerPerimeter = self.getClippedSimplifiedLoopPathByLoop(innerPerimeter)
-		outerPerimeter = self.getClippedSimplifiedLoopPathByLoop(outerPerimeter)
-		if len(innerPerimeter) < 4 or len(outerPerimeter) < 4 or not self.repository.halfWidthPerimeter.value:
-			self.addFlowRateLine(0.5 * self.oldFlowRate)
-			self.addPerimeterLoop(self.perimeter, lowerZ)
-			self.addPerimeterLoop(self.perimeter, self.oldLocation.z)
+		perimeters = []
+		radiusAddition = self.perimeterWidth / self.horizontalPerimeterDivisionsFloat
+		radius = 0.5 * radiusAddition - self.halfPerimeterWidth
+		for division in xrange(self.repository.horizontalPerimeterDivisions.value):
+			perimeters.append(self.getClippedSimplifiedLoopPathByLoop(intercircle.getLargestInsetLoopFromLoop(perimeterThread, radius)))
+			radius += radiusAddition
+		skinnedPerimeterFlowRate = self.oldFlowRate / self.verticalDivisionsFloat
+		if getIsMinimumSides(perimeters):
+			self.addFlowRateLine(skinnedPerimeterFlowRate / self.horizontalPerimeterDivisionsFloat)
+			for verticalDivisionIndex in xrange(self.verticalDivisions):
+				z = bottomZ + self.layerThickness / self.verticalDivisionsFloat * float(verticalDivisionIndex)
+				for perimeter in perimeters:
+					self.addPerimeterLoop(perimeter, z)
 		else:
-			self.addFlowRateLine(0.25 * self.oldFlowRate)
-			self.addPerimeterLoop(innerPerimeter, lowerZ)
-			self.addPerimeterLoop(outerPerimeter, lowerZ)
-			self.addPerimeterLoop(innerPerimeter, self.oldLocation.z)
-			self.addPerimeterLoop(outerPerimeter, self.oldLocation.z)
+			self.addFlowRateLine(skinnedPerimeterFlowRate)
+			for verticalDivisionIndex in xrange(self.verticalDivisions):
+				z = bottomZ + self.layerThickness / self.verticalDivisionsFloat * float(verticalDivisionIndex)
+				self.addPerimeterLoop(self.perimeter, z)
 		self.addFlowRateLine(self.oldFlowRate)
 		self.perimeter = None
 
@@ -219,10 +251,14 @@ class SkinSkein:
 		'Parse gcode text and store the skin gcode.'
 		self.lines = archive.getTextLines(gcodeText)
 		self.repository = repository
-		self.layersFromBottom = self.repository.layersFrom.value
+		self.layersFromBottom = repository.layersFrom.value
+		self.horizontalInfillDivisionsFloat = float(repository.horizontalInfillDivisions.value)
+		self.horizontalPerimeterDivisionsFloat = float(repository.horizontalPerimeterDivisions.value)
+		self.verticalDivisions = max(repository.verticalDivisions.value, 1)
+		self.verticalDivisionsFloat = float(self.verticalDivisions)
 		self.parseInitialization()
-		self.skinInfillInset = 0.5 * (self.infillWidth + self.skinInfillWidth) * (1.0 - self.infillPerimeterOverlap)
 		self.clipLength = 0.5 * self.clipOverPerimeterWidth * self.perimeterWidth
+		self.skinInfillInset = 0.5 * (self.infillWidth + self.skinInfillWidth) * (1.0 - self.infillPerimeterOverlap)
 		self.parseBoundaries()
 		for self.lineIndex in xrange(self.lineIndex, len(self.lines)):
 			line = self.lines[self.lineIndex]
@@ -271,9 +307,9 @@ class SkinSkein:
 				self.infillPerimeterOverlap = float(splitLine[1])
 			elif firstWord == '(<infillWidth>':
 				self.infillWidth = float(splitLine[1])
-				self.skinInfillWidth = 0.5 * self.infillWidth
+				self.skinInfillWidth = self.infillWidth / self.horizontalInfillDivisionsFloat
 			elif firstWord == '(<layerThickness>':
-				self.halfLayerThickness = 0.5 * float(splitLine[1])
+				self.layerThickness = float(splitLine[1])
 			elif firstWord == '(<maximumZFeedRatePerSecond>':
 				self.maximumZFeedRateMinute = 60.0 * float(splitLine[1])
 			elif firstWord == '(<operatingFlowRate>':
@@ -281,7 +317,6 @@ class SkinSkein:
 			elif firstWord == '(<perimeterWidth>':
 				self.perimeterWidth = float(splitLine[1])
 				self.halfPerimeterWidth = 0.5 * self.perimeterWidth
-				self.quarterPerimeterWidth = 0.25 * self.perimeterWidth
 			elif firstWord == '(<travelFeedRatePerSecond>':
 				self.travelFeedRateMinute = 60.0 * float(splitLine[1])
 			self.distanceFeedRate.addLine(line)

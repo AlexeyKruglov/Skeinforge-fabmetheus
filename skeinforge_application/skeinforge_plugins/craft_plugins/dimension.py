@@ -52,6 +52,16 @@ The default value is so low for ABS because ABS is relatively soft and with a pi
 
 Overall, you'll have to find the optimal filament packing density by experiment.
 
+===Maximum E Value before Reset===
+Default: 91234.0
+
+Defines the maximum E value before it is reset with the 'G92 E0' command line.  The reason it is reset only after the maximum E value is reached is because at least one firmware takes time to reset.  The problem with waiting until the E value is high before resetting is that more characters are sent.  So if your firmware takes a lot of time to reset, set this parameter to a high value, if it doesn't set this parameter to a low value or even zero.
+
+===Minimum Travel for Retraction===
+Default: 1.0 millimeter
+
+Defines the minimum distance that the extruder head has to travel from the end of one thread to the beginning of another, in order to trigger the extruder retraction.  Setting this to a high value means the extruder will retract only occasionally, setting it to a low value means the extruder will retract most of the time.
+
 ===Retract Within Island===
 Default is off.
 
@@ -149,6 +159,7 @@ class DimensionRepository:
 		self.filamentDiameter = settings.FloatSpin().getFromValue(1.0, 'Filament Diameter (mm):', self, 6.0, 2.8)
 		self.filamentPackingDensity = settings.FloatSpin().getFromValue(0.7, 'Filament Packing Density (ratio):', self, 1.0, 0.85)
 		settings.LabelSeparator().getFromRepository(self)
+		self.maximumEValueBeforeReset = settings.FloatSpin().getFromValue(0.0, 'Maximum E Value before Reset (float):', self, 999999.9, 91234.0)
 		self.minimumTravelForRetraction = settings.FloatSpin().getFromValue(0.0, 'Minimum Travel for Retraction (millimeters):', self, 2.0, 1.0)
 		self.retractWithinIsland = settings.BooleanSetting().getFromValue('Retract Within Island', self, False)
 		self.retractionDistance = settings.FloatSpin().getFromValue( 0.0, 'Retraction Distance (millimeters):', self, 100.0, 0.0 )
@@ -249,7 +260,6 @@ class DimensionSkein:
 			firstWord = gcodec.getFirstWord(splitLine)
 			if firstWord == 'G1':
 				if isActive:
-					location = gcodec.getLocationFromSplitLine(location, splitLine)
 					if not self.repository.retractWithinIsland.value:
 						locationEnclosureIndex = self.getSmallestEnclosureIndex(location.dropAxis())
 						if locationEnclosureIndex != self.getSmallestEnclosureIndex(self.oldLocation.dropAxis()):
@@ -258,6 +268,7 @@ class DimensionSkein:
 					xyTravel = abs(locationMinusOld.dropAxis())
 					zTravelMultiplied = locationMinusOld.z * self.zDistanceRatio
 					return math.sqrt(xyTravel * xyTravel + zTravelMultiplied * zTravelMultiplied)
+				location = gcodec.getLocationFromSplitLine(location, splitLine)
 			elif firstWord == 'M101':
 				isActive = True
 			elif firstWord == 'M103':
@@ -372,7 +383,7 @@ class DimensionSkein:
 			self.layerIndex += 1
 		elif firstWord == 'M101':
 			self.addLinearMoveExtrusionDistanceLine(self.restartDistance * self.retractionRatio)
-			if self.totalExtrusionDistance > 999999.0: 
+			if self.totalExtrusionDistance > self.repository.maximumEValueBeforeReset.value: 
 				if not self.repository.relativeExtrusionDistance.value:
 					self.distanceFeedRate.addLine('G92 E0')
 					self.totalExtrusionDistance = 0.0

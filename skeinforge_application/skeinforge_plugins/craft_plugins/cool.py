@@ -195,7 +195,7 @@ class CoolSkein:
 			return
 		insetBoundaryLoops = self.boundaryLayer.loops
 		if abs(self.repository.orbitalOutset.value) > 0.1 * abs(self.perimeterWidth):
-			insetBoundaryLoops = intercircle.getInsetLoopsFromLoops(-self.repository.orbitalOutset.value, self.boundaryLayer.loops)
+			insetBoundaryLoops = intercircle.getInsetLoopsFromLoops(self.boundaryLayer.loops, -self.repository.orbitalOutset.value)
 		if len(insetBoundaryLoops) < 1:
 			insetBoundaryLoops = self.boundaryLayer.loops
 		largestLoop = euclidean.getLargestLoop(insetBoundaryLoops)
@@ -212,7 +212,7 @@ class CoolSkein:
 			largestLoop = euclidean.getSquareLoopWiddershins(minimumCorner, maximumCorner)
 		pointComplex = euclidean.getXYComplexFromVector3(self.oldLocation)
 		if pointComplex != None:
-			largestLoop = euclidean.getLoopStartingNearest(self.perimeterWidth, pointComplex, largestLoop)
+			largestLoop = euclidean.getLoopStartingClosest(self.perimeterWidth, pointComplex, largestLoop)
 		intercircle.addOrbitsIfLarge(
 			self.distanceFeedRate, largestLoop, self.orbitalFeedRatePerSecond, remainingOrbitTime, self.highestZ)
 
@@ -245,7 +245,6 @@ class CoolSkein:
 	def getCoolMove(self, line, location, splitLine):
 		'Get cool line according to time spent on layer.'
 		self.feedRateMinute = gcodec.getFeedRateMinute(self.feedRateMinute, splitLine)
-		self.addFlowRate(self.multiplier * self.oldFlowRate)
 		return self.distanceFeedRate.getLineWithFeedRate(self.multiplier * self.feedRateMinute, line, splitLine)
 
 	def getCraftedGcode(self, gcodeText, repository):
@@ -361,6 +360,8 @@ class CoolSkein:
 			self.oldTemperature = gcodec.getDoubleAfterFirstLetter(splitLine[1])
 		elif firstWord == 'M108':
 			self.oldFlowRate = float(splitLine[1][1 :])
+			self.addFlowRate(self.multiplier * self.oldFlowRate)
+			return
 		elif firstWord == '(<boundaryPoint>':
 			self.boundaryLoop.append(gcodec.getLocationFromSplitLine(None, splitLine).dropAxis())
 		elif firstWord == '(<layer>':
@@ -374,6 +375,7 @@ class CoolSkein:
 				self.addOrbitsIfNecessary(remainingOrbitTime)
 			else:
 				self.setMultiplier(remainingOrbitTime)
+				self.addFlowRate(self.multiplier * self.oldFlowRate)
 			z = float(splitLine[1])
 			self.boundaryLayer = euclidean.LoopLayer(z)
 			self.highestZ = max(z, self.highestZ)

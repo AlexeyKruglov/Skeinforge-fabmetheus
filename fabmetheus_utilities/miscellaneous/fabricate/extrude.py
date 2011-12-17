@@ -258,7 +258,7 @@ class displaySkein:
 		self.addToOutput( command )
 
 	def helicalMove( self, isCounterclockwise, splitLine ):
-		"""Parse a helical move gcode line and send the commands to the extruder."""
+		"Parse a helical move gcode line and send the commands to the extruder."
 		if self.oldLocation is None:
 			return
 		location = Vector3( self.oldLocation )

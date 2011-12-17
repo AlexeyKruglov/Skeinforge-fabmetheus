@@ -21,11 +21,11 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 globalExecutionOrder = 80
 
 
-def getManipulatedPaths(close, loop, prefix, sideLength, xmlElement):
-	"""Get inset path."""
-	radius = lineation.getStrokeRadiusByPrefix(prefix, xmlElement )
+def getManipulatedPaths(close, elementNode, loop, prefix, sideLength):
+	"Get inset path."
+	radius = lineation.getStrokeRadiusByPrefix(elementNode, prefix)
 	return intercircle.getInsetLoopsFromVector3Loop(loop, radius)
 
-def processXMLElement(xmlElement):
-	"""Process the xml element."""
-	lineation.processXMLElementByFunction(getManipulatedPaths, xmlElement)
+def processElementNode(elementNode):
+	"Process the xml element."
+	lineation.processElementNodeByFunction(elementNode, getManipulatedPaths)

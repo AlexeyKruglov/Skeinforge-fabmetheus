@@ -1,9 +1,12 @@
 """
 This page is in the table of contents.
-Temperature is a script to set the temperature for the object and raft.
+Temperature is a plugin to set the temperature for the entire extrusion.
+
+The temperature manual page is at:
+http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Temperature
 
 ==Operation==
-The default 'Activate Temperature' checkbox is on.  When it is on, the functions described below will work, when it is off, the functions will not be called.
+The default 'Activate Temperature' checkbox is on.  When it is on, the functions described below will work, when it is off, nothing will be done.
 
 ==Settings==
 ===Rate===
@@ -119,20 +122,21 @@ class TemperatureRepository:
 		"""Set the default settings, execute title & settings fileName."""
 		skeinforge_profile.addListsToCraftTypeRepository('skeinforge_application.skeinforge_plugins.craft_plugins.temperature.html', self )
 		self.fileNameInput = settings.FileNameInput().getFromFileName( fabmetheus_interpret.getGNUTranslatorGcodeFileTypeTuples(), 'Open File for Temperature', self, '')
-		self.activateTemperature = settings.BooleanSetting().getFromValue('Activate Temperature:', self, False )
+		self.openWikiManualHelpPage = settings.HelpPage().getOpenFromAbsolute('http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Temperature')
+		self.activateTemperature = settings.BooleanSetting().getFromValue('Activate Temperature', self, False )
 		settings.LabelSeparator().getFromRepository(self)
 		settings.LabelDisplay().getFromName('- Rate -', self )
 		self.coolingRate = settings.FloatSpin().getFromValue( 1.0, 'Cooling Rate (Celcius/second):', self, 20.0, 3.0 )
-		self.heatingRate = settings.FloatSpin().getFromValue( 1.0, 'Heating Rate (Celcius/second):', self, 20.0, 3.0 )
+		self.heatingRate = settings.FloatSpin().getFromValue( 1.0, 'Heating Rate (Celcius/second):', self, 20.0, 10.0 )
 		settings.LabelSeparator().getFromRepository(self)
-		settings.LabelDisplay().getFromName('- Temperature - Defaults are for PLA', self )
-		self.baseTemperature = settings.FloatSpin().getFromValue( 150.0, 'Base Temperature (Celcius):', self, 240.0, 210.0 )
-		self.interfaceTemperature = settings.FloatSpin().getFromValue( 150.0, 'Interface Temperature (Celcius):', self, 240.0, 210.0 )
-		self.objectFirstLayerInfillTemperature = settings.FloatSpin().getFromValue( 150.0, 'Object First Layer Infill Temperature (Celcius):', self, 240.0, 210.0 )
-		self.objectFirstLayerPerimeterTemperature = settings.FloatSpin().getFromValue( 150.0, 'Object First Layer Perimeter Temperature (Celcius):', self, 240.0, 210.0 )
-		self.objectNextLayersTemperature = settings.FloatSpin().getFromValue( 150.0, 'Object Next Layers Temperature (Celcius):', self, 240.0, 210.0 )
-		self.supportLayersTemperature = settings.FloatSpin().getFromValue( 150.0, 'Support Layers Temperature (Celcius):', self, 240.0, 210.0 )
-		self.supportedLayersTemperature = settings.FloatSpin().getFromValue( 150.0, 'Supported Layers Temperature (Celcius):', self, 240.0, 210.0 )
+		settings.LabelDisplay().getFromName('- Temperature -', self )
+		self.baseTemperature = settings.FloatSpin().getFromValue( 140.0, 'Base Temperature (Celcius):', self, 260.0, 200.0 )
+		self.interfaceTemperature = settings.FloatSpin().getFromValue( 140.0, 'Interface Temperature (Celcius):', self, 260.0, 200.0 )
+		self.objectFirstLayerInfillTemperature = settings.FloatSpin().getFromValue( 140.0, 'Object First Layer Infill Temperature (Celcius):', self, 260.0, 195.0 )
+		self.objectFirstLayerPerimeterTemperature = settings.FloatSpin().getFromValue( 140.0, 'Object First Layer Perimeter Temperature (Celcius):', self, 260.0, 220.0 )
+		self.objectNextLayersTemperature = settings.FloatSpin().getFromValue( 140.0, 'Object Next Layers Temperature (Celcius):', self, 260.0, 230.0 )
+		self.supportLayersTemperature = settings.FloatSpin().getFromValue( 140.0, 'Support Layers Temperature (Celcius):', self, 260.0, 200.0 )
+		self.supportedLayersTemperature = settings.FloatSpin().getFromValue( 140.0, 'Supported Layers Temperature (Celcius):', self, 260.0, 230.0 )
 		self.executeTitle = 'Temperature'
 
 	def execute(self):
@@ -171,7 +175,7 @@ class TemperatureSkein:
 			firstWord = gcodec.getFirstWord(splitLine)
 			self.distanceFeedRate.parseSplitLine(firstWord, splitLine)
 			if firstWord == '(</extruderInitialization>)':
-				self.distanceFeedRate.addLine('(<procedureName> temperature </procedureName>)')
+				self.distanceFeedRate.addTagBracketedProcedure('temperature')
 				return
 			elif firstWord == '(<extrusionWidth>':
 				self.distanceFeedRate.addTagBracketedLine('coolingRate', self.repository.coolingRate.value )

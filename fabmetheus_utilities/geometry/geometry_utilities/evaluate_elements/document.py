@@ -14,100 +14,84 @@ __date__ = '$Date: 2008/02/05 $'
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 
-def _getAccessibleAttribute(attributeName, xmlElement):
-	"""Get the accessible attribute."""
+def _getAccessibleAttribute(attributeName, elementNode):
+	'Get the accessible attribute.'
 	if attributeName in globalGetAccessibleAttributeSet:
-		return getattr(Document(xmlElement), attributeName, None)
+		return getattr(Document(elementNode), attributeName, None)
 	return None
 
 
 class Document:
-	"""Class to get handle xmlElements in a document."""
-	def __init__(self, xmlElement):
-		"""Initialize."""
-		self.xmlElement = xmlElement
+	'Class to handle elementNodes in a document.'
+	def __init__(self, elementNode):
+		'Initialize.'
+		self.elementNode = elementNode
 
 	def __repr__(self):
-		"""Get the string representation of this Document."""
-		return self.xmlElement
+		'Get the string representation of this Document.'
+		return self.elementNode
 
-	def getByID(self, idKey):
-		"""Get element by id."""
-		return self.getElementByID(idKey)
-
-	def getByName(self, nameKey):
-		"""Get element by name."""
-		return self.getElementsByName(nameKey)
+	def getCascadeBoolean(self, defaultBoolean, key):
+		'Get cascade boolean.'
+		return self.elementNode.getCascadeBoolean(defaultBoolean, key)
 
 	def getCascadeFloat(self, defaultFloat, key):
-		"""Get cascade float."""
-		return self.xmlElement.getCascadeFloat(defaultFloat, key)
+		'Get cascade float.'
+		return self.elementNode.getCascadeFloat(defaultFloat, key)
+
+	def getDocumentElement(self):
+		'Get document element element.'
+		return self.elementNode.getDocumentElement()
 
 	def getElementByID(self, idKey):
-		"""Get element by id."""
-		elementByID = self.xmlElement.getXMLElementByImportID(idKey)
+		'Get element by id.'
+		elementByID = self.elementNode.getElementNodeByID(idKey)
 		if elementByID is None:
 			print('Warning, could not get elementByID in getElementByID in document for:')
 			print(idKey)
-			print(self.xmlElement)
+			print(self.elementNode)
 		return elementByID
 
 	def getElementsByName(self, nameKey):
-		"""Get element by name."""
-		elementsByName = self.xmlElement.getXMLElementsByImportName(nameKey)
+		'Get element by name.'
+		elementsByName = self.elementNode.getElementNodesByName(nameKey)
 		if elementsByName is None:
 			print('Warning, could not get elementsByName in getElementsByName in document for:')
 			print(nameKey)
-			print(self.xmlElement)
+			print(self.elementNode)
 		return elementsByName
 
 	def getElementsByTag(self, tagKey):
-		"""Get element by tag."""
-		elementsByTag = self.xmlElement.getXMLElementsByTag(tagKey)
+		'Get element by tag.'
+		elementsByTag = self.elementNode.getElementNodesByTag(tagKey)
 		if elementsByTag is None:
 			print('Warning, could not get elementsByTag in getElementsByTag in document for:')
 			print(tagKey)
-			print(self.xmlElement)
+			print(self.elementNode)
 		return elementsByTag
 
-	def getParent(self):
-		"""Get parent element."""
-		return self.getParentElement()
-
-	def getParentElement(self):
-		"""Get parent element."""
-		return self.xmlElement.parent
+	def getParentNode(self):
+		'Get parentNode element.'
+		return self.elementNode.parentNode
 
 	def getPrevious(self):
 		"""Get previous element."""
 		return self.getPreviousElement()
 
 	def getPreviousElement(self):
-		"""Get previous element."""
-		return self.xmlElement.getPreviousXMLElement()
+		'Get previous element.'
+		return self.elementNode.getPreviousElementNode()
 
 	def getPreviousVertex(self):
-		"""Get previous element."""
-		return self.xmlElement.getPreviousVertex()
-
-	def getRoot(self):
-		"""Get root element."""
-		return self.getRootElement()
-
-	def getRootElement(self):
-		"""Get root element."""
-		return self.xmlElement.getRoot()
-
-	def getSelf(self):
-		"""Get self element."""
-		return self.getSelfElement()
+		'Get previous element.'
+		return self.elementNode.getPreviousVertex()
 
 	def getSelfElement(self):
-		"""Get self element."""
-		return self.xmlElement
+		'Get self element.'
+		return self.elementNode
 
 
-globalAccessibleAttributes = 'getByID getByName getCascadeFloat getElementByID getElementsByName getElementsByTag'.split()
-globalAccessibleAttributes += 'getParent getParentElement getPrevious getPreviousElement getPreviousVertex getRoot'.split()
-globalAccessibleAttributes += 'getRootElement getSelf getSelfElement'.split()
-globalGetAccessibleAttributeSet = set(globalAccessibleAttributes)
+globalAccessibleAttributeDictionary = 'getCascadeBoolean getCascadeFloat getDocumentElement getElementByID getElementsByName'.split()
+globalAccessibleAttributeDictionary += 'getElementsByTag getParentNode getPrevious getPreviousElement getPreviousVertex'.split()
+globalAccessibleAttributeDictionary += 'getSelfElement'.split()
+globalGetAccessibleAttributeSet = set(globalAccessibleAttributeDictionary)

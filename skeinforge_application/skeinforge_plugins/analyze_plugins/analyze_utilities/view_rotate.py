@@ -66,7 +66,7 @@ class ViewpointRotate( MouseToolBase ):
 		self.buttonOnePressedCanvasCoordinate = complex(x, y)
 
 	def buttonRelease1( self, event, shift = False ):
-		"""The left button was released, <ButtonRelease-1> function."""
+		"The left button was released, <ButtonRelease-1> function."
 		if self.buttonOnePressedCanvasCoordinate is None:
 			return
 		x = self.canvas.canvasx(event.x)
@@ -104,7 +104,7 @@ class ViewpointRotate( MouseToolBase ):
 		self.motionGivenCoordinates( self.getMoveCoordinate(), False, self.keyStartCanvasCoordinate )
 
 	def keyPressReturn(self, event):
-		"""The return key was pressed."""
+		"The return key was pressed."
 		if self.keyStartCanvasCoordinate is None:
 			return
 		self.moveViewpointGivenCoordinates( self.getMoveCoordinate(), False, self.keyStartCanvasCoordinate )
@@ -116,7 +116,7 @@ class ViewpointRotate( MouseToolBase ):
 		self.keyPressMotion()
 
 	def keyPressStart(self):
-		"""If necessary, destroy everything and calculate the keyStartCanvasCoordinate."""
+		"If necessary, destroy everything and calculate the keyStartCanvasCoordinate."
 		if self.keyStartCanvasCoordinate is None:
 			self.destroyEverything()
 			self.keyStartCanvasCoordinate = self.window.getScreenComplex( complex( 0.0, 0.75 * self.window.getCanvasRadius() ) )
@@ -128,7 +128,7 @@ class ViewpointRotate( MouseToolBase ):
 		self.keyPressMotion()
 
 	def motion( self, event, shift = False ):
-		"""Move the motion viewpoint if the mouse was moved."""
+		"Move the motion viewpoint if the mouse was moved."
 		if self.buttonOnePressedCanvasCoordinate is None:
 			return
 		x = self.canvas.canvasx(event.x)

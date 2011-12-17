@@ -51,9 +51,20 @@ def getChainTextFromProcedures(fileName, procedures, text):
 				lastProcedureTime = time.time()
 	return text
 
-def getCraftModule(fileName):
-	"""Get craft module."""
-	return archive.getModuleWithDirectoryPath( getPluginsDirectoryPath(), fileName )
+def getCraftModule(pluginName):
+	'Get craft module.'
+	return archive.getModuleWithDirectoryPath(getPluginsDirectoryPath(), pluginName)
+
+def getCraftPreferences(pluginName):
+	'Get craft preferences.'
+	return settings.getReadRepository(getCraftModule(pluginName).getNewRepository()).preferences
+
+def getCraftValue(preferenceName, preferences):
+	"Get craft preferences value."
+	for preference in preferences:
+		if preference.name.startswith(preferenceName):
+			return preference.value
+	return None
 
 def getLastModule():
 	"""Get the last tool."""
@@ -66,15 +77,15 @@ def getNewRepository():
 	"""Get new repository."""
 	return CraftRepository()
 
-def getPluginsDirectoryPath():
-	"""Get the plugins directory path."""
-	return archive.getSkeinforgePluginsPath('craft_plugins')
-
 def getPluginFileNames():
 	"""Get craft plugin fileNames."""
 	craftSequence = getReadCraftSequence()
 	craftSequence.sort()
 	return craftSequence
+
+def getPluginsDirectoryPath():
+	"Get the plugins directory path."
+	return archive.getCraftPluginsDirectoryPath()
 
 def getProcedures( procedure, text ):
 	"""Get the procedures up to and including the given procedure."""

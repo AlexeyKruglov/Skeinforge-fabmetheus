@@ -17,19 +17,6 @@ __date__ = '$Date: 2008/21/04 $'
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 
-def getFileOrGcodeDirectory( fileName, wasCancelled, words = [] ):
-	"""Get the gcode files in the directory the file is in if directory setting is true.  Otherwise, return the file in a list."""
-	if isEmptyOrCancelled( fileName, wasCancelled ):
-		return []
-	if isDirectorySetting():
-		dotIndex = fileName.rfind('.')
-		if dotIndex < 0:
-			print('The file name should have a suffix, like myfile.xml.')
-			print('Since the file name does not have a suffix, nothing will be done')
-		suffix = fileName[ dotIndex + 1 : ]
-		return archive.getFilesWithFileTypeWithoutWords( suffix, words, fileName )
-	return [ fileName ]
-
 def getFileOrDirectoryTypes( fileName, fileTypes, wasCancelled ):
 	"""Get the gcode files in the directory the file is in if directory setting is true.  Otherwise, return the file in a list."""
 	if isEmptyOrCancelled( fileName, wasCancelled ):
@@ -45,6 +32,19 @@ def getFileOrDirectoryTypesUnmodifiedGcode(fileName, fileTypes, wasCancelled):
 	if isDirectorySetting():
 		return archive.getFilesWithFileTypesWithoutWords(fileTypes, [], fileName)
 	return [fileName]
+
+def getFileOrGcodeDirectory( fileName, wasCancelled, words = [] ):
+	"Get the gcode files in the directory the file is in if directory setting is true.  Otherwise, return the file in a list."
+	if isEmptyOrCancelled( fileName, wasCancelled ):
+		return []
+	if isDirectorySetting():
+		dotIndex = fileName.rfind('.')
+		if dotIndex < 0:
+			print('The file name should have a suffix, like myfile.xml.')
+			print('Since the file name does not have a suffix, nothing will be done')
+		suffix = fileName[ dotIndex + 1 : ]
+		return archive.getFilesWithFileTypeWithoutWords( suffix, words, fileName )
+	return [ fileName ]
 
 def getNewRepository():
 	"""Get new repository."""
@@ -62,8 +62,8 @@ def isEmptyOrCancelled( fileName, wasCancelled ):
 class PolyfileRepository:
 	"""A class to handle the polyfile settings."""
 	def __init__(self):
-		"""Set the default settings, execute title & settings fileName."""
-		skeinforge_profile.addListsToCraftTypeRepository('skeinforge_application.skeinforge_utilities.skeinforge_plugins.polyfile.html', self)
+		"Set the default settings, execute title & settings fileName."
+		skeinforge_profile.addListsToCraftTypeRepository('skeinforge_application.skeinforge_utilities.skeinforge_polyfile.html', self)
 		self.directoryOrFileChoiceLabel = settings.LabelDisplay().getFromName('Directory or File Choice: ', self )
 		directoryLatentStringVar = settings.LatentStringVar()
 		self.directorySetting = settings.Radio().getFromRadio( directoryLatentStringVar, 'Execute All Unmodified Files in a Directory', self, False )

@@ -8,7 +8,7 @@ The wipe manual page is at:
 http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Wipe
 
 ==Operation==
-The default 'Activate Wipe' checkbox is off.  When it is on, the functions described below will work, when it is off, the functions will not be called.
+The default 'Activate Wipe' checkbox is off.  When it is on, the functions described below will work, when it is off, nothing will be done.
 
 ==Settings==
 ===Location Arrival===
@@ -133,21 +133,21 @@ class WipeRepository:
 		self.activateWipe = settings.BooleanSetting().getFromValue('Activate Wipe', self, False )
 		settings.LabelSeparator().getFromRepository(self)
 		settings.LabelDisplay().getFromName('- Location Arrival -', self )
-		self.locationArrivalX = settings.FloatSpin().getFromValue( - 100.0, 'Location Arrival X (mm):', self, 300.0, 0.0 )
-		self.locationArrivalY = settings.FloatSpin().getFromValue( - 100.0, 'Location Arrival Y (mm):', self, 300.0, 5.0 )
-		self.locationArrivalZ = settings.FloatSpin().getFromValue( - 100.0, 'Location Arrival Z (mm):', self, 300.0, 0.0 )
+		self.locationArrivalX = settings.FloatSpin().getFromValue( - 100.0, 'Location Arrival X (mm):', self, 100.0, - 70.0 )
+		self.locationArrivalY = settings.FloatSpin().getFromValue( - 100.0, 'Location Arrival Y (mm):', self, 100.0, - 50.0 )
+		self.locationArrivalZ = settings.FloatSpin().getFromValue( - 100.0, 'Location Arrival Z (mm):', self, 100.0, 50.0 )
 		settings.LabelSeparator().getFromRepository(self)
 		settings.LabelDisplay().getFromName('- Location Departure -', self )
-		self.locationDepartureX = settings.FloatSpin().getFromValue( - 100.0, 'Location Departure X (mm):', self, 300.0, 5.0 )
-		self.locationDepartureY = settings.FloatSpin().getFromValue( - 100.0, 'Location Departure Y (mm):', self, 300.0, 0.0 )
-		self.locationDepartureZ = settings.FloatSpin().getFromValue( - 100.0, 'Location Departure Z (mm):', self, 300.0, 0.0 )
+		self.locationDepartureX = settings.FloatSpin().getFromValue( - 100.0, 'Location Departure X (mm):', self, 100.0, - 70.0 )
+		self.locationDepartureY = settings.FloatSpin().getFromValue( - 100.0, 'Location Departure Y (mm):', self, 100.0, - 40.0 )
+		self.locationDepartureZ = settings.FloatSpin().getFromValue( - 100.0, 'Location Departure Z (mm):', self, 100.0, 50.0 )
 		settings.LabelSeparator().getFromRepository(self)
 		settings.LabelDisplay().getFromName('- Location Wipe -', self )
-		self.locationWipeX = settings.FloatSpin().getFromValue( - 100.0, 'Location Wipe X (mm):', self, 300.0, 0.0 )
-		self.locationWipeY = settings.FloatSpin().getFromValue( - 100.0, 'Location Wipe Y (mm):', self, 300.0, 0.0 )
-		self.locationWipeZ = settings.FloatSpin().getFromValue( - 100.0, 'Location Wipe Z (mm):', self, 300.0, 0.0 )
+		self.locationWipeX = settings.FloatSpin().getFromValue( - 100.0, 'Location Wipe X (mm):', self, 100.0, - 70.0 )
+		self.locationWipeY = settings.FloatSpin().getFromValue( - 100.0, 'Location Wipe Y (mm):', self, 100.0, - 70.0 )
+		self.locationWipeZ = settings.FloatSpin().getFromValue( - 100.0, 'Location Wipe Z (mm):', self, 100.0, 50.0 )
 		settings.LabelSeparator().getFromRepository(self)
-		self.wipePeriod = settings.IntSpin().getFromValue( 1, 'Wipe Period (layers):', self, 50000, 33333 )
+		self.wipePeriod = settings.IntSpin().getFromValue( 1, 'Wipe Period (layers):', self, 5, 3 )
 		self.executeTitle = 'Wipe'
 
 	def execute(self):
@@ -226,7 +226,7 @@ class WipeSkein:
 			firstWord = gcodec.getFirstWord(splitLine)
 			self.distanceFeedRate.parseSplitLine(firstWord, splitLine)
 			if firstWord == '(</extruderInitialization>)':
-				self.distanceFeedRate.addLine('(<procedureName> wipe </procedureName>)')
+				self.distanceFeedRate.addTagBracketedProcedure('wipe')
 				return
 			elif firstWord == '(<extrusionWidth>':
 				self.absolutePerimeterWidth = abs(float(splitLine[1]))
@@ -244,9 +244,9 @@ class WipeSkein:
 			self.addWipeTravel(splitLine)
 			self.oldLocation = gcodec.getLocationFromSplitLine(self.oldLocation, splitLine)
 		elif firstWord == '(<layer>':
-			settings.printProgress(self.layerIndex, 'wipe')
 			self.layerIndex += 1
-			if not self.layerIndex % self.wipePeriod:
+			settings.printProgress(self.layerIndex, 'wipe')
+			if self.layerIndex % self.wipePeriod == 0:
 				self.shouldWipe = True
 		elif firstWord == 'M101':
 			self.extruderActive = True

@@ -58,7 +58,7 @@ class ViewpointMove( MouseToolBase ):
 		self.setScrollPaneMove( complex(0.0, -1.0) )
 
 	def motion( self, event, shift = False ):
-		"""The mouse moved, <Motion> function."""
+		"The mouse moved, <Motion> function."
 		if self.buttonOnePressedScreenCoordinate is None:
 			return
 		motionCoordinate = complex( event.x, event.y )

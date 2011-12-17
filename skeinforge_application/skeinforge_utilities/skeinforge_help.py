@@ -7,6 +7,7 @@ from __future__ import absolute_import
 #Init has to be imported first because it has code to workaround the python bug where relative imports don't work if the module is imported as a main module.
 import __init__
 
+from fabmetheus_utilities import archive
 from fabmetheus_utilities import settings
 from skeinforge_application.skeinforge_utilities import skeinforge_profile
 
@@ -26,7 +27,9 @@ class HelpRepository:
 	def __init__(self):
 		"""Set the default settings, execute title & settings fileName."""
 		skeinforge_profile.addListsToCraftTypeRepository('skeinforge_application.skeinforge_utilities.skeinforge_help.html', self)
-		settings.LabelDisplay().getFromName('- Announcements -', self )
+		announcementsText = '- Announcements -                                                                                                                          '
+		announcementsLabel = settings.LabelDisplay().getFromName(announcementsText, self )
+		announcementsLabel.columnspan = 6
 		settings.LabelDisplay().getFromName('Fabmetheus Blog, Announcements & Questions:', self )
 		settings.HelpPage().getFromNameAfterHTTP('fabmetheus.blogspot.com/', 'Fabmetheus Blog', self )
 		settings.LabelSeparator().getFromRepository(self)
@@ -38,17 +41,8 @@ class HelpRepository:
 		settings.LabelDisplay().getFromName('Skeinforge Overview: ', self )
 		settings.HelpPage().getFromNameSubName('Skeinforge Overview', self, 'skeinforge_application.skeinforge.html')
 		settings.LabelSeparator().getFromRepository(self)
-		settings.LabelDisplay().getFromName('- Forums -', self )
-		settings.LabelDisplay().getFromName('Bits from Bytes Software Board:', self )
-		settings.HelpPage().getFromNameAfterWWW('bitsfrombytes.com/fora/user/index.php?board=4.0', 'Bits from Bytes Software Board', self )
-		settings.LabelDisplay().getFromName('Makerbot Operators:', self )
-		settings.HelpPage().getFromNameAfterHTTP('groups.google.com/group/makerbot', 'Makerbot Operators', self )
-		settings.LabelDisplay().getFromName('Skeinforge Contributions Thread:', self )
-		settings.HelpPage().getFromNameAfterHTTP('dev.forums.reprap.org/read.php?12,27562', 'Skeinforge Contributions Thread', self )
-		settings.LabelDisplay().getFromName('Skeinforge Settings Thread:', self )
-		settings.HelpPage().getFromNameAfterHTTP('dev.forums.reprap.org/read.php?12,27434', 'Skeinforge Settings Thread', self )
-		settings.LabelDisplay().getFromName('Skeinforge Troubleshooting Thread:', self )
-		settings.HelpPage().getFromNameAfterHTTP('forums.reprap.org/list.php?154', 'Skeinforge Troubleshooting Thread', self )
+		settings.LabelDisplay().getFromName('SFACT FAQs:', self)
+		settings.HelpPage().getFromNameAfterHTTP('http://titanpad.com/XTUJXiNHmd', '    SFACT FAQs    ', self )
 		settings.LabelSeparator().getFromRepository(self)
 		settings.LabelDisplay().getFromName('- Search -', self )
 		settings.LabelDisplay().getFromName('Reprap Search:', self )
@@ -58,6 +52,11 @@ class HelpRepository:
 		settings.LabelDisplay().getFromName('Web Search:', self )
 		settings.HelpPage().getFromNameAfterHTTP('members.axion.net/~enrique/search_web.html', 'Web Search', self )
 		settings.LabelSeparator().getFromRepository(self)
+		settings.LabelDisplay().getFromName('- Troubleshooting -', self )
+		settings.LabelDisplay().getFromName('Skeinforge Forum:', self)
+		settings.HelpPage().getFromNameAfterHTTP('forums.reprap.org/list.php?154', '    Skeinforge Forum    ', self )
+		settings.LabelSeparator().getFromRepository(self)
+		self.version = settings.LabelDisplay().getFromName('Version: ' + archive.getFileText(archive.getVersionFileName()), self)
 		self.wikiManualPrimary = settings.BooleanSetting().getFromValue('Wiki Manual Primary', self, True )
 		self.wikiManualPrimary.setUpdateFunction( self.save )
 

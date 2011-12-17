@@ -11,7 +11,7 @@ http://objects.reprap.org/wiki/3D-to-5D-Gcode.php
 The default values are from the settings in Erik's 3D-to-5D-Gcode, I believe the settings are used on his Darwin reprap.
 
 ==Operation==
-The default 'Activate Lash' checkbox is off.  When it is on, the functions described below will work, when it is off, the functions will not be called.
+The default 'Activate Lash' checkbox is off.  When it is on, the functions described below will work, when it is off, nothing will be done.
 
 ==Settings==
 ===X Backlash===
@@ -89,8 +89,8 @@ class LashRepository:
 		self.fileNameInput = settings.FileNameInput().getFromFileName( fabmetheus_interpret.getGNUTranslatorGcodeFileTypeTuples(), 'Open File for Lash', self, '')
 		self.openWikiManualHelpPage = settings.HelpPage().getOpenFromAbsolute('http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Lash')
 		self.activateLash = settings.BooleanSetting().getFromValue('Activate Lash if you have backlash in your axes', self, False )
-		self.xBacklash = settings.FloatSpin().getFromValue( 0.0, 'X Backlash (mm):', self, 0.5, 0.0 )
-		self.yBacklash = settings.FloatSpin().getFromValue( 0.0, 'Y Backlash (mm):', self, 0.5, 0.0 )
+		self.xBacklash = settings.FloatSpin().getFromValue( 0.1, 'X Backlash (mm):', self, 0.5, 0.2 )
+		self.yBacklash = settings.FloatSpin().getFromValue( 0.1, 'Y Backlash (mm):', self, 0.5, 0.3 )
 		self.executeTitle = 'Lash'
 
 	def execute(self):
@@ -122,7 +122,7 @@ class LashSkein:
 		return self.distanceFeedRate.output.getvalue()
 
 	def getLashedLine( self, line, location, splitLine ):
-		"""Get lashed gcode line."""
+		"Get lashed gcode line."
 		if self.oldLocation is None:
 			return line
 		if location.x > self.oldLocation.x:
@@ -143,7 +143,7 @@ class LashSkein:
 			firstWord = gcodec.getFirstWord(splitLine)
 			self.distanceFeedRate.parseSplitLine(firstWord, splitLine)
 			if firstWord == '(</extruderInitialization>)':
-				self.distanceFeedRate.addLine('(<procedureName> lash </procedureName>)')
+				self.distanceFeedRate.addTagBracketedProcedure('lash')
 				return
 			self.distanceFeedRate.addLine(line)
 

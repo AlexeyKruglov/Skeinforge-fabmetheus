@@ -71,8 +71,8 @@ def addLoopsXSegmentIntersections( lineLoopsIntersections, loops, segmentFirstX,
 		addLoopXSegmentIntersections( lineLoopsIntersections, loop, segmentFirstX, segmentSecondX, segmentYMirror, y )
 
 def addLoopXSegmentIntersections( lineLoopsIntersections, loop, segmentFirstX, segmentSecondX, segmentYMirror, y ):
-	"""Add intersections of the loop with the x segment."""
-	rotatedLoop = euclidean.getPointsRoundZAxis( segmentYMirror, loop )
+	'Add intersections of the loop with the x segment.'
+	rotatedLoop = euclidean.getRotatedComplexes( segmentYMirror, loop )
 	for pointIndex in xrange( len( rotatedLoop ) ):
 		pointFirst = rotatedLoop[pointIndex]
 		pointSecond = rotatedLoop[ (pointIndex + 1) % len( rotatedLoop ) ]
@@ -177,14 +177,13 @@ def getLoopsUnified(importRadius, loopLists):
 	"""Get joined loops sliced through shape."""
 	allPoints = []
 	corners = getLoopsListsIntersections(loopLists)
-	radiusSide = 0.01 * importRadius
-	radiusSideNegative = -radiusSide
+	radiusSideNegative = -0.01 * importRadius
 	intercircle.directLoopLists(True, loopLists)
 	for loopListIndex in xrange(len(loopLists)):
 		insetLoops = loopLists[ loopListIndex ]
 		inBetweenInsetLoops = getInBetweenLoopsFromLoops(insetLoops, importRadius)
 		otherLoops = euclidean.getConcatenatedList(loopLists[: loopListIndex] + loopLists[loopListIndex + 1 :])
-		corners += getInsetPointsByInsetLoops(insetLoops, False, otherLoops, radiusSide)
+		corners += getInsetPointsByInsetLoops(insetLoops, False, otherLoops, radiusSideNegative)
 		allPoints += getInsetPointsByInsetLoops(inBetweenInsetLoops, False, otherLoops, radiusSideNegative)
 	allPoints += corners[:]
 	return triangle_mesh.getDescendingAreaOrientedLoops(allPoints, corners, importRadius)
@@ -222,8 +221,8 @@ class BooleanSolid( group.Group ):
 		return self.operationFunction(importRadius, visibleObjectLoopsList)
 
 	def getTransformedPaths(self):
-		"""Get all transformed paths."""
-		importRadius = setting.getImportRadius(self.xmlElement)
+		'Get all transformed paths.'
+		importRadius = setting.getImportRadius(self.elementNode)
 		loopsFromObjectLoopsList = self.getLoopsFromObjectLoopsList(importRadius, self.getComplexTransformedPathLists())
 		return euclidean.getVector3Paths(loopsFromObjectLoopsList)
 

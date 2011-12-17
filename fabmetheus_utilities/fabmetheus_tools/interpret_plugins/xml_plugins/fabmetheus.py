@@ -15,8 +15,10 @@ from __future__ import absolute_import
 #Init has to be imported first because it has code to workaround the python bug where relative imports don't work if the module is imported as a main module.
 import __init__
 
+from fabmetheus_utilities.fabmetheus_tools.interpret_plugins import xml
 from fabmetheus_utilities.geometry.geometry_utilities import boolean_geometry
 from fabmetheus_utilities.geometry.geometry_utilities import evaluate
+from fabmetheus_utilities.geometry.solids import group
 from fabmetheus_utilities import archive
 from fabmetheus_utilities import gcodec
 from fabmetheus_utilities import settings
@@ -33,12 +35,16 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getCarvingFromParser(xmlParser):
-	"""Get the carving for the parser."""
-	booleanGeometryElement = xmlParser.getRoot()
+	"Get the carving for the parser."
+	booleanGeometryElement = xmlParser.getDocumentElement()
 	booleanGeometryElement.xmlObject = boolean_geometry.BooleanGeometry()
 	booleanGeometryElement.xmlProcessor = XMLBooleanGeometryProcessor()
 	booleanGeometryElement.xmlProcessor.processChildren(booleanGeometryElement)
 	return booleanGeometryElement.xmlObject
+
+def processElementNode(elementNode):
+	"Process the xml element."
+	evaluate.processArchivable(group.Group, elementNode)
 
 
 class XMLBooleanGeometryProcessor():
@@ -59,13 +65,14 @@ class XMLBooleanGeometryProcessor():
 		archive.addToNamePathDictionary(archive.getGeometryToolsPath('path_elements'), self.namePathDictionary)
 		archive.addToNamePathDictionary(archive.getGeometryPath('solids'), self.namePathDictionary)
 		archive.addToNamePathDictionary(archive.getGeometryPath('statements'), self.namePathDictionary)
+		archive.addToNamePathDictionary(xml.getPluginsDirectoryPath(), self.namePathDictionary)
 
 	def __repr__(self):
 		"""Get the string representation of this XMLBooleanGeometryProcessor."""
 		return 'XMLBooleanGeometryProcessor with %s functions.' % len(self.functions)
 
-	def convertXMLElement( self, geometryOutput, xmlElement ):
-		"""Convert the xml element."""
+	def convertElementNode(self, elementNode, geometryOutput):
+		"Convert the xml element."
 		geometryOutputKeys = geometryOutput.keys()
 		if len( geometryOutputKeys ) < 1:
 			return None
@@ -73,37 +80,37 @@ class XMLBooleanGeometryProcessor():
 		lowerClassName = firstKey.lower()
 		if lowerClassName not in self.namePathDictionary:
 			return None
-		pluginModule = archive.getModuleWithPath( self.namePathDictionary[ lowerClassName ] )
+		pluginModule = archive.getModuleWithPath( self.namePathDictionary[ lowerLocalName ] )
 		if pluginModule is None:
 			return None
-		xmlElement.className = lowerClassName
-		return pluginModule.convertXMLElement(geometryOutput[ firstKey ], xmlElement)
+		elementNode.localName = lowerLocalName
+		return pluginModule.convertElementNode(elementNode, geometryOutput[ firstKey ])
 
 	def createChildren( self, geometryOutput, parent ):
 		"""Create children for the parent."""
 		for geometryOutputChild in geometryOutput:
-			child = xml_simple_reader.XMLElement()
-			child.setParentAddToChildren( parent )
-			self.convertXMLElement(geometryOutputChild, child)
+			childNode = xml_simple_reader.ElementNode()
+			childNode.setParentAddToChildNodes( parentNode )
+			self.convertElementNode(childNode, geometryOutputChild)
 
-	def processChildren(self, xmlElement):
-		"""Process the children of the xml element."""
-		for child in xmlElement.children:
-			self.processXMLElement(child)
+	def processChildNodes(self, elementNode):
+		"Process the childNodes of the xml element."
+		for childNode in elementNode.childNodes:
+			self.processElementNode(childNode)
 
-	def processXMLElement(self, xmlElement):
-		"""Process the xml element."""
-		lowerClassName = xmlElement.className.lower()
-		if lowerClassName not in self.namePathDictionary:
+	def processElementNode(self, elementNode):
+		'Process the xml element.'
+		lowerLocalName = elementNode.getNodeName().lower()
+		if lowerLocalName not in self.namePathDictionary:
 			return None
-		pluginModule = archive.getModuleWithPath(self.namePathDictionary[lowerClassName])
+		pluginModule = archive.getModuleWithPath(self.namePathDictionary[lowerLocalName])
 		if pluginModule is None:
 			return None
 		try:
-			return pluginModule.processXMLElement(xmlElement)
+			return pluginModule.processElementNode(elementNode)
 		except:
-			print('Warning, could not processXMLElement in fabmetheus for:')
+			print('Warning, could not processElementNode in fabmetheus for:')
 			print(pluginModule)
-			print(xmlElement)
+			print(elementNode)
 			traceback.print_exc(file=sys.stdout)
 		return None

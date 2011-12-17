@@ -24,40 +24,36 @@ __date__ = '$Date: 2008/02/05 $'
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 
-def getGeometryOutput(derivation, xmlElement):
-	"""Get vector3 vertexes from attribute dictionary."""
+def getGeometryOutput(derivation, elementNode):
+	"Get vector3 vertexes from attribute dictionary."
 	if derivation is None:
-		derivation = DrillDerivation(xmlElement)
+		derivation = DrillDerivation(elementNode)
 	negatives = []
-	teardrop.addNegativesByRadius(derivation.end, negatives, derivation.radius, derivation.start, xmlElement)
-	return solid.getGeometryOutputByManipulation(negatives[0], xmlElement)
+	teardrop.addNegativesByRadius(elementNode, derivation.end, negatives, derivation.radius, derivation.start)
+	return solid.getGeometryOutputByManipulation(elementNode, negatives[0])
 
-def getGeometryOutputByArguments(arguments, xmlElement):
-	"""Get vector3 vertexes from attribute dictionary by arguments."""
-	evaluate.setAttributeDictionaryByArguments(['radius', 'start', 'end'], arguments, xmlElement)
-	return getGeometryOutput(None, xmlElement)
+def getGeometryOutputByArguments(arguments, elementNode):
+	"Get vector3 vertexes from attribute dictionary by arguments."
+	evaluate.setAttributesByArguments(['radius', 'start', 'end'], arguments, elementNode)
+	return getGeometryOutput(None, elementNode)
 
-def getNewDerivation(xmlElement):
-	"""Get new derivation."""
-	return DrillDerivation(xmlElement)
+def getNewDerivation(elementNode):
+	'Get new derivation.'
+	return DrillDerivation(elementNode)
 
-def processXMLElement(xmlElement):
-	"""Process the xml element."""
-	solid.processXMLElementByGeometry(getGeometryOutput(None, xmlElement), xmlElement)
+def processElementNode(elementNode):
+	"Process the xml element."
+	solid.processElementNodeByGeometry(elementNode, getGeometryOutput(None, elementNode))
 
 
 class DrillDerivation:
-	"""Class to hold drill variables."""
-	def __init__(self, xmlElement):
-		"""Set defaults."""
-		self.end = evaluate.getVector3ByPrefix(Vector3(0.0, 0.0, 1.0), 'end', xmlElement)
-		self.start = evaluate.getVector3ByPrefix(Vector3(), 'start', xmlElement)
-		self.radius = lineation.getFloatByPrefixBeginEnd('radius', 'diameter', 1.0, xmlElement)
-		size = evaluate.getEvaluatedFloat(None, 'size', xmlElement)
+	"Class to hold drill variables."
+	def __init__(self, elementNode):
+		'Set defaults.'
+		self.elementNode = elementNode
+		self.end = evaluate.getVector3ByPrefix(Vector3(0.0, 0.0, 1.0), elementNode, 'end')
+		self.start = evaluate.getVector3ByPrefix(Vector3(), elementNode, 'start')
+		self.radius = lineation.getFloatByPrefixBeginEnd(elementNode, 'radius', 'diameter', 1.0)
+		size = evaluate.getEvaluatedFloat(None, elementNode, 'size')
 		if size is not None:
 			self.radius = 0.5 * size
-		self.xmlElement = xmlElement
-
-	def __repr__(self):
-		"""Get the string representation of this DrillDerivation."""
-		return str(self.__dict__)

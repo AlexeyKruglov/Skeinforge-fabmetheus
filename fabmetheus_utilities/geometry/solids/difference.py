@@ -19,13 +19,17 @@ __date__ = '$Date: 2008/21/04 $'
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 
-def convertXMLElement(geometryOutput, xmlElement):
-	"""Convert the xml element to a difference xml element."""
-	group.convertContainerXMLElement(geometryOutput, xmlElement, Difference())
+def convertElementNode(elementNode, geometryOutput):
+	"Convert the xml element to a difference xml element."
+	group.convertContainerElementNode(elementNode, geometryOutput, Difference())
 
-def processXMLElement(xmlElement):
-	"""Process the xml element."""
-	evaluate.processArchivable(Difference, xmlElement)
+def getNewDerivation(elementNode):
+	'Get new derivation.'
+	return evaluate.EmptyObject(elementNode)
+
+def processElementNode(elementNode):
+	"Process the xml element."
+	evaluate.processArchivable(Difference, elementNode)
 
 
 class Difference( boolean_solid.BooleanSolid ):

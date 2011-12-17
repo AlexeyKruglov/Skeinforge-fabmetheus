@@ -1,20 +1,23 @@
 """
 This page is in the table of contents.
-Jitter jitters the loop end position to a different place on each layer to prevent the a ridge from forming.
+This craft tool jitters the loop end position to a different place on each layer to prevent a ridge from being created on the side of the object.
 
 The jitter manual page is at:
 http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Jitter
 
 ==Operation==
-The default 'Activate Jitter' checkbox is on.  When it is on, the functions described below will work, when it is off, the functions will not be called.
+The default 'Activate Jitter' checkbox is on.  When it is on, the functions described below will work, when it is off, nothing will be done.
 
 ==Settings==
 ===Jitter Over Perimeter Width===
-Default is two.
+Default: 2
 
 Defines the amount the loop ends will be jittered over the perimeter width.
 A high value means the loops will start all over the place and a low value means loops will start at roughly the same place
 on each layer.
+
+For example if you turn jitter off and print a cube every outside shell on the cube will start from exactly the same point so you will have a visible "mark/line/seam" on the side of the cube.  Using the jitter tool you move that start point around hence you avoid that visible seam. 
+
 
 ==Examples==
 The following examples jitter the file Screw Holder Bottom.stl.  The examples are run in a terminal in the folder
@@ -155,7 +158,7 @@ class JitterSkein:
 		self.addGcodePathZ( self.feedRateMinute, thread[1 :], z )
 
 	def addGcodeMovementZ(self, feedRateMinute, point, z):
-		"""Add a movement to the output."""
+		'Add a movement to the output.'
 		if feedRateMinute is None:
 			feedRateMinute = self.operatingFeedRatePerMinute
 		self.distanceFeedRate.addGcodeMovementZWithFeedRate(feedRateMinute, point, z)
@@ -191,7 +194,7 @@ class JitterSkein:
 			firstWord = gcodec.getFirstWord(splitLine)
 			self.distanceFeedRate.parseSplitLine(firstWord, splitLine)
 			if firstWord == '(</extruderInitialization>)':
-				self.distanceFeedRate.addLine('(<procedureName> jitter </procedureName>)')
+				self.distanceFeedRate.addTagBracketedProcedure('jitter')
 				return
 			elif firstWord == '(<operatingFeedRatePerSecond>':
 				self.operatingFeedRatePerMinute = 60.0 * float(splitLine[1])
@@ -222,7 +225,7 @@ class JitterSkein:
 				self.addTailoredLoopPath()
 		elif firstWord == '(<layer>':
 			self.layerCount.printProgressIncrement('jitter')
-			self.layerGolden = math.fmod(self.layerGolden + 0.61803398874989479, 1.0)  # x-n*y
+			self.layerGolden = math.fmod(self.layerGolden + 0.61803398874989479, 1.0)
 			self.layerJitter = self.jitter * self.layerGolden - 0.5
 		elif firstWord == '(<loop>' or firstWord == '(<perimeter>':
 			self.isLoopPerimeter = True

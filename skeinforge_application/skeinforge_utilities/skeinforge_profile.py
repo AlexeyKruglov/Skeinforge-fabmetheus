@@ -112,16 +112,7 @@ def updateProfileSaveListeners():
 
 
 class AddProfile:
-	"""A class to add a profile."""
-	def addToDialog( self, gridPosition ):
-		"""Add this to the dialog."""
-		gridPosition.increment()
-		self.entry = settings.Tkinter.Entry( gridPosition.master )
-		self.entry.bind('<Return>', self.addSelectionWithEvent )
-		self.entry.grid( row = gridPosition.row, column = 1, columnspan = 3, sticky = settings.Tkinter.W )
-		self.addButton = settings.Tkinter.Button( gridPosition.master, activebackground = 'black', activeforeground = 'white', text = 'Add Profile', command = self.addSelection )
-		self.addButton.grid( row = gridPosition.row, column = 0 )
-
+	"A class to add a profile."
 	def addSelection(self):
 		"""Add the selection of a listbox setting."""
 		entryText = self.entry.get()
@@ -143,6 +134,15 @@ class AddProfile:
 	def addSelectionWithEvent(self, event):
 		"""Add the selection of a listbox setting, given an event."""
 		self.addSelection()
+
+	def addToDialog( self, gridPosition ):
+		"Add this to the dialog."
+		gridPosition.increment()
+		self.entry = settings.Tkinter.Entry( gridPosition.master )
+		self.entry.bind('<Return>', self.addSelectionWithEvent )
+		self.entry.grid( row = gridPosition.row, column = 1, columnspan = 3, sticky = settings.Tkinter.W )
+		self.addButton = settings.Tkinter.Button( gridPosition.master, activebackground = 'black', activeforeground = 'white', text = 'Add Profile', command = self.addSelection )
+		self.addButton.grid( row = gridPosition.row, column = 0 )
 
 	def getFromProfileListboxSettingRepository( self, profileListboxSetting, repository ):
 		"""Initialize."""

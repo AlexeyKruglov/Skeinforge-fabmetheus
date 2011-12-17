@@ -26,21 +26,24 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 globalExecutionOrder = 200
 
 
-def getManipulatedGeometryOutput(geometryOutput, prefix, xmlElement):
-	"""Get equated geometryOutput."""
+def getManipulatedGeometryOutput(elementNode, geometryOutput, prefix):
+	'Get equated geometryOutput.'
 	flippedGeometryOutput = triangle_mesh.getGeometryOutputCopy(geometryOutput)
-	flip.flipPoints(matrix.getVertexes(flippedGeometryOutput), prefix, xmlElement)
-	if flip.getShouldReverse(prefix, xmlElement):
+	flip.flipPoints(elementNode, matrix.getVertexes(flippedGeometryOutput), prefix)
+	if flip.getShouldReverse(elementNode, prefix):
 		flippedFaces = face.getFaces(flippedGeometryOutput)
 		for flippedFace in flippedFaces:
 			flippedFace.vertexIndexes.reverse()
 	return {'union' : {'shapes' : [flippedGeometryOutput, geometryOutput]}}
 
-def getManipulatedPaths(close, loop, prefix, sideLength, xmlElement):
-	"""Get flipped paths."""
-	return [loop + flip.getFlippedLoop(euclidean.getPathCopy(loop), prefix, xmlElement)]
+def getManipulatedPaths(close, elementNode, loop, prefix, sideLength):
+	'Get flipped paths.'
+	return [loop + flip.getFlippedLoop(elementNode, euclidean.getPathCopy(loop), prefix)]
 
+def getNewDerivation(elementNode, prefix, sideLength):
+	'Get new derivation.'
+	return evaluate.EmptyObject()
 
-def processXMLElement(xmlElement):
-	"""Process the xml element."""
-	solid.processXMLElementByFunctions(getManipulatedGeometryOutput, getManipulatedPaths, xmlElement)
+def processElementNode(elementNode):
+	'Process the xml element.'
+	solid.processElementNodeByFunctionPair(elementNode, getManipulatedGeometryOutput, getManipulatedPaths)

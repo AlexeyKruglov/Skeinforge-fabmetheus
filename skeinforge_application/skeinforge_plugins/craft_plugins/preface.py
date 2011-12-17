@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 """
 This page is in the table of contents.
-Preface converts the svg slices into gcode extrusion layers, optionally prefaced with some gcode commands.
+Preface converts the svg slices into gcode extrusion layers, optionally with home, positioning, turn off, and unit commands.
 
 The preface manual page is at:
 http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Preface
@@ -11,19 +11,6 @@ http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Preface
 Default is empty.
 
 The 'Meta' field is to add meta tags or a note to all your files.  Whatever is in that field will be added in a meta tagged line to the output.
-
-===Name of Alteration Files===
-Preface looks for alteration files in the alterations folder in the .skeinforge folder in the home directory.  Preface does not care if the text file names are capitalized, but some file systems do not handle file name cases properly, so to be on the safe side you should give them lower case names.  If it doesn't find the file it then looks in the alterations folder in the skeinforge_plugins folder.
-
-====Name of End File====
-Default is end.gcode.
-
-If there is a file with the name of the "Name of End File" setting, it will be added to the very end of the gcode.
-
-====Name of Start File====
-Default is start.gcode.
-
-If there is a file with the name of the "Name of Start File" setting, it will be added to the very beginning of the gcode.
 
 ===Set Positioning to Absolute===
 Default is on.
@@ -70,7 +57,7 @@ from __future__ import absolute_import
 #Init has to be imported first because it has code to workaround the python bug where relative imports don't work if the module is imported as a main module.
 import __init__
 
-from datetime import date
+from datetime import date, datetime
 from fabmetheus_utilities.fabmetheus_tools import fabmetheus_interpret
 from fabmetheus_utilities.svg_reader import SVGReader
 from fabmetheus_utilities import archive
@@ -118,15 +105,14 @@ class PrefaceRepository:
 		self.openWikiManualHelpPage = settings.HelpPage().getOpenFromAbsolute('http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Preface')
 		self.meta = settings.StringSetting().getFromValue('Meta:', self, '')
 		settings.LabelSeparator().getFromRepository(self)
-		settings.LabelDisplay().getFromName('- Name of Alteration Files -', self )
-		self.nameOfEndFile = settings.StringSetting().getFromValue('Name of End File:', self, 'end.gmc')
-		self.nameOfStartFile = settings.StringSetting().getFromValue('Name of Start File:', self, 'start.gmc')
-		settings.LabelSeparator().getFromRepository(self)
 		self.setPositioningToAbsolute = settings.BooleanSetting().getFromValue('Set Positioning to Absolute', self, True )
 		self.setUnitsToMillimeters = settings.BooleanSetting().getFromValue('Set Units to Millimeters', self, True )
 		self.startAtHome = settings.BooleanSetting().getFromValue('Home before Print', self, False )
 		self.resetExtruder = settings.BooleanSetting().getFromValue('Reset Extruder before Print', self, True )
 		settings.LabelSeparator().getFromRepository(self)
+		settings.LabelDisplay().getFromName('- Turn Extruder Off -', self )
+		self.turnExtruderOffAtShutDown = settings.BooleanSetting().getFromValue('Turn Extruder Off at Shut Down', self, True )
+#		self.turnExtruderOffAtStartUp = settings.BooleanSetting().getFromValue('Turn Extruder Off at Start Up', self, True )
 		self.executeTitle = 'Preface'
 
 	def execute(self):
@@ -145,22 +131,19 @@ class PrefaceSkein:
 		self.oldLocation = None
 		self.svgReader = SVGReader()
 
-
-
-	def addFromUpperLowerFile(self, fileName):
-		"""Add lines of text from the fileName or the lowercase fileName, if there is no file by the original fileName in the directory."""
-		self.distanceFeedRate.addLinesSetAbsoluteDistanceMode(settings.getLinesInAlterationsOrGivenDirectory(fileName))
-
 	def addInitializationToOutput(self):
-		"""Add initialization gcode to the output."""
-		self.addFromUpperLowerFile(self.repository.nameOfStartFile.value) # Add a start file if it exists.
-		self.distanceFeedRate.addTagBracketedLine('creation', 'skeinforge') # GCode formatted comment
-		absoluteFilePathUntilDot = os.path.abspath(__file__)[: os.path.abspath(__file__).rfind('.')]
+		"Add initialization gcode to the output."
+		self.distanceFeedRate.addTagBracketedLine('format', 'skeinforge gcode')
+		absoluteFilePathUntilDot = archive.getUntilDot(archive.getCraftPluginsDirectoryPath('preface.py'))
+		dateTodayString = date.today().isoformat().replace('-', '.')[2 :]
 		if absoluteFilePathUntilDot == '/home/enrique/Desktop/backup/babbleold/script/reprap/fabmetheus/skeinforge_application/skeinforge_plugins/craft_plugins/preface': #is this script on Enrique's computer?
-			archive.writeFileText(archive.getVersionFileName(), date.today().isoformat().replace('-', '.')[2 :])
+			archive.writeFileText(archive.getVersionFileName(), dateTodayString)
 		versionText = archive.getFileText(archive.getVersionFileName())
-		self.distanceFeedRate.addTagBracketedLine('version', versionText) # GCode formatted comment
-		self.distanceFeedRate.addLine('(<extruderInitialization>)') # GCode formatted comment
+		self.distanceFeedRate.addTagBracketedLine('version', versionText)
+		dateTimeTuple = datetime.now().timetuple()
+		created = dateTodayString + '|%s:%s' % (dateTimeTuple[3], dateTimeTuple[4])
+		self.distanceFeedRate.addTagBracketedLine('created', created)
+		self.distanceFeedRate.addLine('(<extruderInitialization>)')
 		if self.repository.setPositioningToAbsolute.value:
 			self.distanceFeedRate.addLine('G90 ;set positioning to absolute') # Set positioning to absolute.
 		if self.repository.setUnitsToMillimeters.value:
@@ -176,30 +159,40 @@ class PrefaceSkein:
 		self.distanceFeedRate.addTagRoundedLine('extrusionHeight', extrusionHeight)
 		if self.repository.meta.value:
 			self.distanceFeedRate.addTagBracketedLine('meta', self.repository.meta.value)
-		extrusionWidth = float(self.svgReader.sliceDictionary['extrusionWidth'])
-		self.distanceFeedRate.addTagRoundedLine('extrusionWidth', extrusionWidth)
+		perimeterWidth = float(self.svgReader.sliceDictionary['perimeterWidth'])
+		self.distanceFeedRate.addTagRoundedLine('perimeterWidth', perimeterWidth)
 		self.distanceFeedRate.addTagBracketedLine('profileName', skeinforge_profile.getProfileName(craftTypeName))
 		procedureNames = self.svgReader.sliceDictionary['procedureName'].replace(',', ' ').split()
 		for procedureName in procedureNames:
-			self.distanceFeedRate.addTagBracketedLine('procedureName', procedureName)
-		self.distanceFeedRate.addTagBracketedLine('procedureName', 'preface')
+			self.distanceFeedRate.addTagBracketedProcedure(procedureName)
+		self.distanceFeedRate.addTagBracketedProcedure('preface')
 		self.distanceFeedRate.addLine('(</extruderInitialization>)') # Initialization is finished, extrusion is starting.
 		self.distanceFeedRate.addLine('(<crafting>)') # Initialization is finished, crafting is starting.
 
-	def addPreface( self, rotatedLoopLayer ):
-		"""Add preface to the carve layer."""
-		self.distanceFeedRate.addLine('(<layer> %s )' % rotatedLoopLayer.z ) # Indicate that a new layer is starting.
-		if rotatedLoopLayer.rotation is not None:
-			self.distanceFeedRate.addTagBracketedLine('bridgeRotation', str( rotatedLoopLayer.rotation ) ) # Indicate the bridge rotation.
-		for loop in rotatedLoopLayer.loops:
-			self.distanceFeedRate.addGcodeFromLoop(loop, rotatedLoopLayer.z)
+	def addPreface( self, loopLayer ):
+		"Add preface to the carve layer."
+		self.distanceFeedRate.addLine('(<layer> %s )' % loopLayer.z ) # Indicate that a new layer is starting.
+		for loop in loopLayer.loops:
+			self.distanceFeedRate.addGcodeFromLoop(loop, loopLayer.z)
 		self.distanceFeedRate.addLine('(</layer>)')
 
 
 	def addShutdownToOutput(self):
 		"Add shutdown gcode to the output."
 		self.distanceFeedRate.addLine('(</crafting>)') # GCode formatted comment
-		self.addFromUpperLowerFile(self.repository.nameOfEndFile.value) # Add an end file if it exists.
+		if self.repository.turnExtruderOffAtShutDown.value:
+			self.distanceFeedRate.addLine('M103') # Turn extruder motor off.
+
+	def addToolSettingLines(self, pluginName):
+		"Add tool setting lines."
+		preferences = skeinforge_craft.getCraftPreferences(pluginName)
+		if skeinforge_craft.getCraftValue('Activate %s' % pluginName.capitalize(), preferences) != True:
+			return
+		for preference in preferences:
+			valueWithoutReturn = str(preference.value).replace('\n', ' ').replace('\r', ' ')
+			if preference.name != 'WindowPosition' and not preference.name.startswith('Open File'):
+				line = '%s %s %s' % (pluginName, preference.name.replace(' ', '_'), valueWithoutReturn)
+				self.distanceFeedRate.addTagBracketedLine('setting', line)
 
 	def getCraftedGcode( self, repository, gcodeText ):
 		"""Parse gcode text and store the bevel gcode."""
@@ -210,9 +203,9 @@ class PrefaceSkein:
 			return ''
 		self.distanceFeedRate.decimalPlacesCarried = int(self.svgReader.sliceDictionary['decimalPlacesCarried'])
 		self.addInitializationToOutput()
-		for rotatedLoopLayerIndex, rotatedLoopLayer in enumerate(self.svgReader.rotatedLoopLayers):
-			settings.printProgressByNumber(rotatedLoopLayerIndex, len(self.svgReader.rotatedLoopLayers), 'preface')
-			self.addPreface( rotatedLoopLayer )
+		for loopLayerIndex, loopLayer in enumerate(self.svgReader.loopLayers):
+			settings.printProgressByNumber(loopLayerIndex, len(self.svgReader.loopLayers), 'preface')
+			self.addPreface( loopLayer )
 		self.addShutdownToOutput()
 		return self.distanceFeedRate.output.getvalue()
 

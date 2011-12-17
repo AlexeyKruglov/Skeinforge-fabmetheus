@@ -21,38 +21,34 @@ __date__ = '$Date: 2008/02/05 $'
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 
-def getGeometryOutput(derivation, xmlElement):
-	"""Get triangle mesh from attribute dictionary."""
+def getGeometryOutput(derivation, elementNode):
+	'Get triangle mesh from attribute dictionary.'
 	if derivation is None:
-		derivation = ConcatenateDerivation(xmlElement)
+		derivation = ConcatenateDerivation(elementNode)
 	concatenatedList = euclidean.getConcatenatedList(derivation.target)[:]
 	if len(concatenatedList) == 0:
 		print('Warning, in concatenate there are no paths.')
-		print(xmlElement.attributeDictionary)
+		print(elementNode.attributes)
 		return None
-	if 'closed' not in xmlElement.attributeDictionary:
-		xmlElement.attributeDictionary['closed'] = 'true'
-	return lineation.getGeometryOutputByLoop(lineation.SideLoop(concatenatedList, None, None), xmlElement)
+	if 'closed' not in elementNode.attributes:
+		elementNode.attributes['closed'] = 'true'
+	return lineation.getGeometryOutputByLoop(elementNode, lineation.SideLoop(concatenatedList))
 
-def getGeometryOutputByArguments(arguments, xmlElement):
-	"""Get triangle mesh from attribute dictionary by arguments."""
-	return getGeometryOutput(None, xmlElement)
+def getGeometryOutputByArguments(arguments, elementNode):
+	'Get triangle mesh from attribute dictionary by arguments.'
+	return getGeometryOutput(None, elementNode)
 
-def getNewDerivation(xmlElement):
-	"""Get new derivation."""
-	return ConcatenateDerivation(xmlElement)
+def getNewDerivation(elementNode):
+	'Get new derivation.'
+	return ConcatenateDerivation(elementNode)
 
-def processXMLElement(xmlElement):
-	"""Process the xml element."""
-	path.convertXMLElement(getGeometryOutput(None, xmlElement), xmlElement)
+def processElementNode(elementNode):
+	'Process the xml element.'
+	path.convertElementNode(elementNode, getGeometryOutput(None, elementNode))
 
 
 class ConcatenateDerivation:
-	"""Class to hold concatenate variables."""
-	def __init__(self, xmlElement):
-		"""Initialize."""
-		self.target = evaluate.getTransformedPathsByKey([], 'target', xmlElement)
-
-	def __repr__(self):
-		"""Get the string representation of this ConcatenateDerivation."""
-		return str(self.__dict__)
+	'Class to hold concatenate variables.'
+	def __init__(self, elementNode):
+		'Initialize.'
+		self.target = evaluate.getTransformedPathsByKey([], elementNode, 'target')

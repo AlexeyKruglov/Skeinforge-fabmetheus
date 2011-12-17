@@ -73,7 +73,7 @@ class Vector3:
 		return Vector3( self.x / other, self.y / other, self.z / other )
 
 	def __eq__(self, other):
-		"""Determine whether this vector is identical to other one."""
+		"Determine whether this vector is identical to other one."
 		if other is None:
 			return False
 		return self.x == other.x and self.y == other.y and self.z == other.z

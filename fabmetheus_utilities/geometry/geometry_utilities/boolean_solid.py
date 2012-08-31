@@ -51,7 +51,7 @@ def addLineLoopsIntersections( loopLoopsIntersections, loops, pointBegin, pointE
 def addLineXSegmentIntersection( lineLoopsIntersections, segmentFirstX, segmentSecondX, vector3First, vector3Second, y ):
 	"""Add intersections of the line with the x segment."""
 	xIntersection = euclidean.getXIntersectionIfExists( vector3First, vector3Second, y )
-	if xIntersection is None:
+	if xIntersection == None:
 		return
 	if xIntersection < min( segmentFirstX, segmentSecondX ):
 		return
@@ -121,7 +121,7 @@ def getLoopsDifference(importRadius, loopLists):
 	"""Get difference loops."""
 	halfImportRadius = 0.5 * importRadius # so that there are no misses on shallow angles
 	radiusSide = 0.01 * importRadius
-	negativeLoops = getLoopsUnified(importRadius, loopLists[1 :])
+	negativeLoops = getLoopsUnion(importRadius, loopLists[1 :])
 	intercircle.directLoops(False, negativeLoops)
 	positiveLoops = loopLists[0]
 	intercircle.directLoops(True, positiveLoops)
@@ -133,8 +133,8 @@ def getLoopsDifference(importRadius, loopLists):
 	return triangle_mesh.getDescendingAreaOrientedLoops(allPoints, corners, importRadius)
 
 def getLoopsIntersection(importRadius, loopLists):
-	"""Get intersection loops."""
-	intercircle.directLoopLists( True, loopLists )
+	'Get intersection loops.'
+	intercircle.directLoopLists(True, loopLists)
 	if len(loopLists) < 1:
 		return []
 	if len(loopLists) < 2:
@@ -142,7 +142,7 @@ def getLoopsIntersection(importRadius, loopLists):
 	intercircle.directLoopLists(True, loopLists)
 	loopsIntersection = loopLists[0]
 	for loopList in loopLists[1 :]:
-		loopsIntersection = getLoopsIntersectionByPair( importRadius, loopsIntersection, loopList )
+		loopsIntersection = getLoopsIntersectionByPair(importRadius, loopsIntersection, loopList)
 	return loopsIntersection
 
 def getLoopsIntersectionByPair(importRadius, loopsFirst, loopsLast):
@@ -173,8 +173,8 @@ def getLoopsLoopsIntersections( loops, otherLoops ):
 		addLoopLoopsIntersections( loop, loopsLoopsIntersections, otherLoops )
 	return loopsLoopsIntersections
 
-def getLoopsUnified(importRadius, loopLists):
-	"""Get joined loops sliced through shape."""
+def getLoopsUnion(importRadius, loopLists):
+	'Get joined loops sliced through shape.'
 	allPoints = []
 	corners = getLoopsListsIntersections(loopLists)
 	radiusSideNegative = -0.01 * importRadius
@@ -227,8 +227,8 @@ class BooleanSolid( group.Group ):
 		return euclidean.getVector3Paths(loopsFromObjectLoopsList)
 
 	def getUnion(self, importRadius, visibleObjectLoopsList):
-		"""Get joined loops sliced through shape."""
-		return getLoopsUnified(importRadius, visibleObjectLoopsList)
+		'Get joined loops sliced through shape.'
+		return getLoopsUnion(importRadius, visibleObjectLoopsList)
 
 	def getXMLClassName(self):
 		"""Get xml class name."""

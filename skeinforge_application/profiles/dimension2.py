@@ -97,16 +97,19 @@ The dimension tool has created the file:
 #Init has to be imported first because it has code to workaround the python bug where relative imports don't work if the module is imported as a main module.
 import __init__
 
+from datetime import date
 from fabmetheus_utilities.fabmetheus_tools import fabmetheus_interpret
 from fabmetheus_utilities.geometry.solids import triangle_mesh
 from fabmetheus_utilities import archive
 from fabmetheus_utilities import euclidean
 from fabmetheus_utilities import gcodec
+from fabmetheus_utilities import intercircle
 from fabmetheus_utilities import settings
 from skeinforge_application.skeinforge_utilities import skeinforge_craft
 from skeinforge_application.skeinforge_utilities import skeinforge_polyfile
 from skeinforge_application.skeinforge_utilities import skeinforge_profile
 import math
+import os
 import sys
 
 
@@ -116,11 +119,11 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 
 def getCraftedText( fileName, gcodeText = '', repository=None):
-	"""Dimension a gcode file or text."""
+	'Dimension a gcode file or text.'
 	return getCraftedTextFromText( archive.getTextIfEmpty(fileName, gcodeText), repository )
 
 def getCraftedTextFromText(gcodeText, repository=None):
-	"""Dimension a gcode text."""
+	'Dimension a gcode text.'
 	if gcodec.isProcedureDoneOrFileIsEmpty( gcodeText, 'dimension'):
 		return gcodeText
 	if repository is None:
@@ -130,18 +133,18 @@ def getCraftedTextFromText(gcodeText, repository=None):
 	return DimensionSkein().getCraftedGcode(gcodeText, repository)
 
 def getNewRepository():
-	"""Get new repository."""
+	'Get new repository.'
 	return DimensionRepository()
 
 def writeOutput(fileName, shouldAnalyze=True):
-	"""Dimension a gcode file."""
+	'Dimension a gcode file.'
 	skeinforge_craft.writeChainTextWithNounMessage(fileName, 'dimension', shouldAnalyze)
 
 
 class DimensionRepository:
-	"""A class to handle the dimension settings."""
+	'A class to handle the dimension settings.'
 	def __init__(self):
-		"""Set the default settings, execute title & settings fileName."""
+		'Set the default settings, execute title & settings fileName.'
 		skeinforge_profile.addListsToCraftTypeRepository('skeinforge_application.skeinforge_plugins.craft_plugins.dimension.html', self )
 		self.fileNameInput = settings.FileNameInput().getFromFileName( fabmetheus_interpret.getGNUTranslatorGcodeFileTypeTuples(), 'Open File for Dimension', self, '')
 		self.openWikiManualHelpPage = settings.HelpPage().getOpenFromAbsolute('http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Dimension')
@@ -154,10 +157,9 @@ class DimensionRepository:
 		settings.LabelSeparator().getFromRepository(self)
 		settings.LabelDisplay().getFromName('- Filament -', self )
 		self.filamentDiameter = settings.FloatSpin().getFromValue(1.0, 'Filament Diameter (mm):', self, 6.0, 2.8)
-#		self.filamentPackingDensity = settings.FloatSpin().getFromValue(0.5, 'E-Steps corrector:', self, 1.5, 1.0)
-		self.filamentPackingDensityx = settings.FloatSpin().getFromValue(-0.25, 'Add/remove to actual extrusion width (mm):', self, 0.25, 0.0)
-#		self.activateCalibration = settings.BooleanSetting().getFromValue('Are You Calibrating?', self, False )
-#		self.MeasuredXSection = settings.FloatSpin().getFromValue(0.20, 'Measured Width of Extrusion:', self, 2.0, 0.5)
+		self.filamentPackingDensity = settings.FloatSpin().getFromValue(0.5, 'E-Steps corrector:', self, 1.5, 1.0)
+		self.activateCalibration = settings.BooleanSetting().getFromValue('Are You Calibrating?', self, False )
+		self.MeasuredXSection = settings.FloatSpin().getFromValue(0.20, 'Measured Width of Extrusion:', self, 2.0, 0.5)
 		settings.LabelSeparator().getFromRepository(self)
 		settings.LabelDisplay().getFromName('- Filament Retraction Settings -', self )
 		self.maximumEValueBeforeReset = settings.FloatSpin().getFromValue(0.0, 'Maximum E Value before Reset (float):', self, 999999.9, 91234.0)
@@ -168,16 +170,16 @@ class DimensionRepository:
 		self.executeTitle = 'Dimension'
 
 	def execute(self):
-		"""Dimension button has been clicked."""
+		'Dimension button has been clicked.'
 		fileNames = skeinforge_polyfile.getFileOrDirectoryTypesUnmodifiedGcode(self.fileNameInput.value, fabmetheus_interpret.getImportPluginFileNames(), self.fileNameInput.wasCancelled)
 		for fileName in fileNames:
 			writeOutput(fileName)
 
 
 class DimensionSkein:
-	"""A class to dimension a skein of extrusions."""
+	'A class to dimension a skein of extrusions.'
 	def __init__(self):
-		"""Initialize."""
+		'Initialize.'
 		self.absoluteDistanceMode = True
 		self.boundaryLayers = []
 		self.distanceFeedRate = gcodec.DistanceFeedRate()
@@ -211,7 +213,7 @@ class DimensionSkein:
 #			self.distanceFeedRate.output.write('G1 F%s\n' % self.distanceFeedRate.getRounded(self.feedRateMinute))
 
 	def getCraftedGcode(self, gcodeText, repository):
-		"""Parse gcode text and store the dimension gcode."""
+		'Parse gcode text and store the dimension gcode.'
 		self.repository = repository
 		filamentRadius = 0.5 * repository.filamentDiameter.value
 		filamentPackingArea = filamentRadius ** 2 * math.pi
@@ -222,21 +224,20 @@ class DimensionSkein:
 		if not self.repository.retractWithinIsland.value:
 			self.parseBoundaries()
 #		self.flowScaleSixty = (((self.layerHeight+self.edgeWidth)/4)*((self.layerHeight+self.edgeWidth)/4)) * math.pi
-		self.flowScaleSixty = ((self.edgeWidth-self.layerHeight)*self.layerHeight)+(self.layerHeight/2)**2* math.pi
+		self.flowScaleSixty = ((self.edgeWidth-self.layerHeight)*self.layerHeight)+(self.layerHeight/2)** math.pi
 
-#		if repository.activateCalibration.value:
-#			self.calibrationFactor = (4 * (self.repository.MeasuredXSection.value - self.edgeWidth))/((math.pi-4)*self.layerHeight+ 4* self.edgeWidth  )+1
-#			self.newfilamentPackingDensity = repository.filamentPackingDensity.value * self.calibrationFactor
-#			print('***************E-Steps corrector Value (For Calibration)*********************:')
-#			print('****E-Steps corrector Value (For Calibration) STEPPER EXTRUDERS ONLY :*******', self.newfilamentPackingDensity )
-#			print('***************E-Steps corrector Value (For Calibration)*********************')
-#			print('**********this created G-CODE is only for calculating The Value**************')
-#			print('****Enter the Value into SFACT, uncheck the calibration box, RE-Skein********')
-#		else :
-#			self.calibrationFactor = repository.filamentPackingDensity.value
-		self.calibrationFactor = (4 * (-repository.filamentPackingDensityx.value))/((math.pi-4)*self.layerHeight+ 4* self.edgeWidth  )+1
-#		if self.calibrationFactor is None:
-#			print('Measured extrusion width cant be 0, either un-check calibration or set measured width to what you have measured!')
+		if repository.activateCalibration.value:
+			self.calibrationFactor = (4 * (self.repository.MeasuredXSection.value - self.edgeWidth))/((math.pi-4)*self.layerHeight+ 4* self.edgeWidth  )+1
+			self.newfilamentPackingDensity = repository.filamentPackingDensity.value * self.calibrationFactor
+			print('***************E-Steps corrector Value (For Calibration)*********************:')
+			print('****E-Steps corrector Value (For Calibration) STEPPER EXTRUDERS ONLY :*******', self.newfilamentPackingDensity )
+			print('***************E-Steps corrector Value (For Calibration)*********************')
+			print('**********this created G-CODE is only for calculating The Value**************')
+			print('****Enter the Value into SFACT, uncheck the calibration box, RE-Skein********')
+		else :
+			self.calibrationFactor = repository.filamentPackingDensity.value
+		if self.calibrationFactor is None:
+			print('Measured extrusion width cant be 0, either un-check calibration or set measured width to what you have measured!')
 		if self.operatingFlowRate is None:
 			print('There is no operatingFlowRate so dimension will do nothing.')
 			return gcodeText
@@ -261,7 +262,7 @@ class DimensionSkein:
 		return line + self.getExtrusionDistanceString(distance, splitLine)
 
 	def getDimensionedLinearMovement( self, line, splitLine ):
-		"""Get a dimensioned linear movement."""
+		'Get a dimensioned linear movement.'
 		distance = 0.0
 		if self.absoluteDistanceMode:
 			location = gcodec.getLocationFromSplitLine(self.oldLocation, splitLine)
@@ -305,7 +306,7 @@ class DimensionSkein:
 		return None
 
 	def getExtrusionDistanceString( self, distance, splitLine ):
-		"""Get the extrusion distance string."""
+		'Get the extrusion distance string.'
 		self.feedRateMinute = gcodec.getFeedRateMinute( self.feedRateMinute, splitLine )
 		if not self.isExtruderActive:
 			return ''
@@ -326,7 +327,6 @@ class DimensionSkein:
 		self.totalExtrusionDistance += extrusionDistance
 		return ' E' + self.distanceFeedRate.getRounded( self.totalExtrusionDistance )
 
-
 	def getRetractionRatio(self, lineIndex):
 		'Get the retraction ratio.'
 		distanceToNextThread = self.getDistanceToNextThread(lineIndex)
@@ -339,7 +339,7 @@ class DimensionSkein:
 		return (distanceToNextThread - self.minimumTravelForRetraction) / self.minimumTravelForRetraction
 
 	def getSmallestEnclosureIndex(self, point):
-		"""Get the index of the smallest boundary loop which encloses the point."""
+		'Get the index of the smallest boundary loop which encloses the point.'
 		boundaryLayer = self.boundaryLayers[self.layerIndex]
 		for loopIndex, loop in enumerate(boundaryLayer.loops):
 			if euclidean.isPointInsideLoop(loop, point):
@@ -347,7 +347,7 @@ class DimensionSkein:
 		return None
 
 	def parseBoundaries(self):
-		"""Parse the boundaries and add them to the boundary layers."""
+		'Parse the boundaries and add them to the boundary layers.'
 		boundaryLoop = None
 		boundaryLayer = None
 		for line in self.lines[self.lineIndex :]:
@@ -368,7 +368,7 @@ class DimensionSkein:
 			triangle_mesh.sortLoopsInOrderOfArea(False, boundaryLayer.loops)
 
 	def parseInitialization(self):
-		"""Parse gcode initialization and store the parameters."""
+		'Parse gcode initialization and store the parameters.'
 		for self.lineIndex in xrange(len(self.lines)):
 			line = self.lines[self.lineIndex]
 			splitLine = gcodec.getSplitLineBeforeBracketSemicolon(line)
@@ -400,7 +400,7 @@ class DimensionSkein:
 			self.distanceFeedRate.addLine(line)
 
 	def parseLine( self, lineIndex ):
-		"""Parse a gcode line and add it to the dimension skein."""
+		'Parse a gcode line and add it to the dimension skein.'
 		line = self.lines[lineIndex].lstrip()
 		splitLine = gcodec.getSplitLineBeforeBracketSemicolon(line)
 		if len(splitLine) < 1:
@@ -438,11 +438,11 @@ class DimensionSkein:
 
 
 def main():
-	"""Display the dimension dialog."""
+	'Display the dimension dialog.'
 	if len(sys.argv) > 1:
 		writeOutput(' '.join(sys.argv[1 :]))
 	else:
-		settings.startMainLoopFromConstructor( getNewRepository() )
+		settings.startMainLoopFromConstructor(getNewRepository())
 
 if __name__ == '__main__':
 	main()

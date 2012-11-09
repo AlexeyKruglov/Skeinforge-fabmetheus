@@ -413,7 +413,7 @@ class RaftSkein :
 		self.edgeWidth = 0.6
 		self.extrusionStart = True
 		self.extrusionTop = 0.0
-		self.feedRateMinute = 961.0
+		self.feedRateMinute = None
 		self.heatingRate = None
 		self.insetTable = {}
 		self.interfaceTemperature = None
@@ -435,9 +435,9 @@ class RaftSkein :
 		self.operatingFlowRate = None
 		self.operatingLayerEndLine = '(<operatingLayerEnd> </operatingLayerEnd>)'
 		self.operatingJump = None
-		self.orbitalFeedRatePerSecond = 2.01
+		self.orbitalFeedRatePerSecond = None
 		self.sharpestProduct = 0.94
-		self.supportFeedRate = 10
+		self.supportFeedRate = None
 		self.supportFlowRate = None
 		self.supportLayers = []
 		self.supportLayersTemperature = None
@@ -708,11 +708,12 @@ class RaftSkein :
 		paths = euclidean.getPathsFromEndpoints(endpoints, 1.5 * self.interfaceStep, aroundPixelTable, self.sharpestProduct, aroundWidth)
 		feedRateMinuteMultiplied = self.repository.supportFeedRate.value * 60
 		supportFlowRateMultiplied = self.repository.supportFlowRateOverOperatingFlowRate.value*(self.nozzleXsection / self.extrusionXsection)
+		self.travelFeedRateMinute = None #self.repository.supportFeedRate.value * 60
 		if self.layerIndex == 0:
-			feedRateMinuteMultiplied = self.objectFirstLayerFeedRateInfillMultiplier * 60
+			feedRateMinuteMultiplied = None #self.objectFirstLayerFeedRateInfillMultiplier * 60
 			if supportFlowRateMultiplied != None:
 				supportFlowRateMultiplied = supportFlowRateMultiplied *1.25
-			self.travelFeedRateMinute = self.firstLayertravelFeedRateMinute
+			self.travelFeedRateMinute = None #self.firstLayertravelFeedRateMinute
 		self.addFlowRate(supportFlowRateMultiplied)
 		for path in paths:
 			self.distanceFeedRate.addGcodeFromFeedRateThreadZ(feedRateMinuteMultiplied, path, self.travelFeedRateMinute, z)
@@ -810,9 +811,6 @@ class RaftSkein :
 	def getCraftedGcode(self, gcodeText, repository):
 		"""Parse gcode text and store the raft gcode."""
 		self.repository = repository
-#		self.minimumSupportRatio = math.tan( math.radians( repository.supportMinimumAngle.value ) )
-#		print self.supportAutoAngle
-#		self.minimumSupportRatio = math.tan( math.radians( 56.91 ) )
 		self.supportEndLines = settings.getAlterationFileLines(repository.nameOfSupportEndFile.value)
 		self.supportStartLines = settings.getAlterationFileLines(repository.nameOfSupportStartFile.value)
 		self.lines = archive.getTextLines(gcodeText)
@@ -920,7 +918,7 @@ class RaftSkein :
 			elif firstWord == 'M108':
 				self.oldFlowRate = float(splitLine[1][1 :])
 			elif firstWord == '(<objectFirstLayerFeedRateInfillMultiplier>':
-				self.objectFirstLayerFeedRateInfillMultiplier = float(splitLine[1])
+				self.objectFirstLayerFeedRateInfillMultiplier = None #float(splitLine[1])
 			elif firstWord == '(<objectFirstLayerFlowRateInfillMultiplier>':
 				self.objectFirstLayerFlowRateInfillMultiplier = float(splitLine[1])
 			elif firstWord == '(<objectFirstLayerInfillTemperature>':
@@ -931,9 +929,9 @@ class RaftSkein :
 				self.objectNextLayersTemperature = float(splitLine[1])
 			elif firstWord == '(<orbitalFeedRatePerSecond>':
 				self.orbitalFeedRatePerSecond = float(splitLine[1])
-			elif firstWord == '(<operatingFeedRatePerSecond>':
-				self.operatingFeedRateMinute = 60.0 * float(splitLine[1])
-				self.feedRateMinute = self.operatingFeedRateMinute
+#			elif firstWord == '(<operatingFeedRatePerSecond>':
+#				self.operatingFeedRateMinute = None # 60.0 * float(splitLine[1])
+#				self.feedRateMinute = None # self.operatingFeedRateMinute
 			elif firstWord == '(<operatingFlowRate>':
 				self.operatingFlowRate = float(splitLine[1])
 				self.oldFlowRate = self.operatingFlowRate
@@ -944,10 +942,10 @@ class RaftSkein :
 				self.supportLayersTemperature = float(splitLine[1])
 			elif firstWord == '(<supportedLayersTemperature>':
 				self.supportedLayersTemperature = float(splitLine[1])
-			elif firstWord == '(<travelFeedRate>':
-				self.travelFeedRateMinute = 60.0 * float(splitLine[1])
-			elif firstWord == '(<FirstLayerTravelSpeed>':
-				self.firstLayertravelFeedRateMinute = 60.0 * float(splitLine[1])
+#			elif firstWord == '(<travelFeedRatePerSecond>':
+#				self.travelFeedRateMinute = None # 60.0 * float(splitLine[1])
+#			elif firstWord == '(<FirstLayerTravelSpeed>':
+#				self.firstLayertravelFeedRateMinute = None # 60.0 * float(splitLine[1])
 			elif firstWord == '(<nozzleDiameter>':
 				self.nozzleDiameter = float(splitLine[1])
 			elif firstWord == '(<nozzleXsection>':

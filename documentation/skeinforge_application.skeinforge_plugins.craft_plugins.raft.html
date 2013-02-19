@@ -10,7 +10,7 @@
 ><td align=right valign=bottom
 ><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/enrique/Desktop/backup/babbleold/script/reprap/fabmetheus/skeinforge_application/skeinforge_plugins/craft_plugins/raft.py">/home/enrique/Desktop/backup/babbleold/script/reprap/fabmetheus/skeinforge_application/skeinforge_plugins/craft_plugins/raft.py</a></font></td></tr></table>
     <p>
-<a href="skeinforge_application.skeinforge_plugins.craft_plugins.preface.html">Previous</a> / <a href="skeinforge_application.skeinforge_plugins.craft_plugins.scale.html">Next</a> / <a href="contents.html">Contents</a>
+<a href="skeinforge_application.skeinforge_plugins.craft_plugins.qqtemperature.html">Previous</a> / <a href="skeinforge_application.skeinforge_plugins.craft_plugins.scale.html">Next</a> / <a href="contents.html">Contents</a>
 </p>
 <p><tt><br>
 Raft is a plugin to create a raft, elevate the nozzle and set the temperature.  A raft is a flat base structure on top of which your object is being build and has a few different purposes. It fills irregularities like scratches and pits in your printbed and gives you a nice base parallel to the printheads movement. It also glues your object to the bed so to prevent warping in bigger object.  The rafts base layer performs these tricks while the sparser interface layer(s) help you removing the object from the raft after printing.  It is based on the Nophead's reusable raft, which has a base layer running one way, and a couple of perpendicular layers above.  Each set of layers can be set to a different temperature.  There is the option of having the extruder orbit the raft for a while, so the heater barrel has time to reach a different temperature, without ooze accumulating around the nozzle.<br>
@@ -286,7 +286,7 @@ Screw Holder Bottom_raft.gcode</tt>
 <br />
 <br />
 <p>
-<a href="skeinforge_application.skeinforge_plugins.craft_plugins.preface.html">Previous</a> / <a href="skeinforge_application.skeinforge_plugins.craft_plugins.scale.html">Next</a> / <a href="contents.html">Contents</a>
+<a href="skeinforge_application.skeinforge_plugins.craft_plugins.qqtemperature.html">Previous</a> / <a href="skeinforge_application.skeinforge_plugins.craft_plugins.scale.html">Next</a> / <a href="contents.html">Contents</a>
 </p>
 <hr>
 </p>
@@ -361,7 +361,7 @@ Screw Holder Bottom_raft.gcode</tt>
 
 <dl><dt><a name="RaftSkein-addInterfaceTables"><strong>addInterfaceTables</strong></a>(self, interfaceExtrusionWidth)</dt><dd><tt>Add&nbsp;interface&nbsp;tables.</tt></dd></dl>
 
-<dl><dt><a name="RaftSkein-addLayerFromEndpoints"><strong>addLayerFromEndpoints</strong></a>(self, endpoints, feedRateMultiplier, flowRateMultiplier, layerLayerThickness, layerThicknessRatio, step, z)</dt><dd><tt>Add&nbsp;a&nbsp;layer&nbsp;from&nbsp;endpoints&nbsp;and&nbsp;raise&nbsp;the&nbsp;extrusion&nbsp;top.</tt></dd></dl>
+<dl><dt><a name="RaftSkein-addLayerFromEndpoints"><strong>addLayerFromEndpoints</strong></a>(self, endpoints, feedRateMultiplier, flowRateMultiplier, layerLayerThickness, layerThicknessRatio, step, tagStart, z)</dt><dd><tt>Add&nbsp;a&nbsp;layer&nbsp;from&nbsp;endpoints&nbsp;and&nbsp;raise&nbsp;the&nbsp;extrusion&nbsp;top.</tt></dd></dl>
 
 <dl><dt><a name="RaftSkein-addLayerLine"><strong>addLayerLine</strong></a>(self, z)</dt><dd><tt>Add&nbsp;the&nbsp;layer&nbsp;gcode&nbsp;line&nbsp;and&nbsp;close&nbsp;the&nbsp;last&nbsp;layer&nbsp;gcode&nbsp;block.</tt></dd></dl>
 

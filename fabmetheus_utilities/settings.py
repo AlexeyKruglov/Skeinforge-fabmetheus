@@ -256,6 +256,16 @@ def getGlobalRepositoryDialogValues():
 	global globalRepositoryDialogListTable
 	return euclidean.getListTableElements(globalRepositoryDialogListTable)
 
+def getLowerUpperFileTypes(fileTypes):
+	'Get lower and upper file types from lower list.'
+	lowerUpperFileTypes = []
+	for fileType in fileTypes:
+		lowerUpperFileTypes.append(fileType)
+	for fileType in fileTypes:
+		upperFileType = (fileType[0], fileType[1].upper())
+		lowerUpperFileTypes.append(upperFileType)
+	return lowerUpperFileTypes
+
 def getPathInFabmetheusFromFileNameHelp( fileNameHelp ):
 	"Get the directory path from file name help."
 	fabmetheusPath = archive.getFabmetheusPath()
@@ -917,7 +927,7 @@ class FileHelpMenuBar:
 			self.addPluginToMenuBar(os.path.join(skeinforgePluginsPath, pluginFileName), repository, window)
 
 	def saveClose(self):
-		"Call the save function then the close function."
+		'Call the save function then the close function.'
 		self.saveFunction()
 		self.closeFunction()
 
@@ -930,7 +940,7 @@ class FileNameInput( StringSetting ):
 		gridPosition.executables.append(self)
 
 	def execute(self):
-		"Open the file picker."
+		'Open the file picker.'
 		self.wasCancelled = False
 		parent = self.gridPosition.master
 		try:
@@ -954,25 +964,26 @@ class FileNameInput( StringSetting ):
 
 	def getFileNameFirstTypes(self):
 		"Get the file types with the file type of the fileName moved to the front of the list."
-		allFiles = [ ('All', '*.*') ]
+		allFiles = [('All', '*.*')]
 		try:
 			basename = os.path.basename(self.value)
 			splitFile = basename.split('.')
 			allReadables = []
-			if len( self.fileTypes ) > 1:
+			if len(self.fileTypes) > 1:
 				for fileType in self.fileTypes:
-					allReadable = ( ('All Readable', fileType[1] ) )
-					allReadables.append( allReadable )
+					allReadable = (('All Readable', fileType[1]))
+					allReadables.append(allReadable)
+				allReadables = getLowerUpperFileTypes(allReadables)
 			if len( splitFile ) < 1:
-				return allReadables + allFiles + self.fileTypes
+				return allReadables + allFiles + getLowerUpperFileTypes(self.fileTypes)
 			baseExtension = splitFile[-1]
 			for fileType in self.fileTypes:
 				fileExtension = fileType[1].split('.')[-1]
 				if fileExtension == baseExtension:
 					fileNameFirstTypes = self.fileTypes[:]
-					fileNameFirstTypes.remove( fileType )
-					return [ fileType ] + allReadables + allFiles + fileNameFirstTypes
-			return allReadables + allFiles + self.fileTypes
+					fileNameFirstTypes.remove(fileType)
+					return getLowerUpperFileTypes([fileType]) + allReadables + allFiles + getLowerUpperFileTypes(fileNameFirstTypes)
+			return allReadables + allFiles + getLowerUpperFileTypes(self.fileTypes)
 		except:
 			return allFiles
 
@@ -1004,7 +1015,7 @@ class FloatSetting( StringSetting ):
 		try:
 			self.value = float( valueString )
 		except:
-			print('Oops, can not read float' + self.name + ' ' + valueString )
+			print('Oops, can not read float ' + self.name + ' ' + valueString )
 
 
 class FloatSpin( FloatSetting ):

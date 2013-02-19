@@ -39,7 +39,7 @@ Default is on.
 When selected, the M104 S0 gcode line will be added to the end of the file to turn the extruder heater off by setting the extruder heater temperature to 0.
 
 ===Volume Fraction===
-Default: 0.82
+Default: 0.93
 
 The 'Volume Fraction' is the estimated volume of the thread compared to the box defined by the layer height and infill width. This is used in dwindle, splodge, and statistic. It is in inset because inset is a required extrusion tool, earlier in the chain than dwindle and splodge. In dwindle and splodge it is used to determine the filament volume, in statistic it is used to determine the extrusion diameter.
 
@@ -307,7 +307,7 @@ class InsetRepository:
 		self.loopOrderDescendingArea = settings.MenuRadio().getFromMenuButtonDisplay(self.loopOrderChoice, 'Descending Area', self, False)
 		self.overlapRemovalWidthOverEdgeWidth = settings.FloatSpin().getFromValue(0.3, 'Overlap Removal Width over Perimeter Width (ratio):', self, 0.9, 0.6)
 		self.turnExtruderHeaterOffAtShutDown = settings.BooleanSetting().getFromValue('Turn Extruder Heater Off at Shut Down', self, True)
-		self.volumeFraction = settings.FloatSpin().getFromValue(0.7, 'Volume Fraction (ratio):', self, 0.9, 0.82)
+		self.volumeFraction = settings.FloatSpin().getFromValue(0.7, 'Volume Fraction (ratio):', self, 1.0, 0.93)
 		self.executeTitle = 'Inset'
 
 	def execute(self):

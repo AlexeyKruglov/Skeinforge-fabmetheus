@@ -465,6 +465,7 @@ class RaftSkein:
 			baseLayerThickness,
 			self.baseLayerThicknessOverLayerThickness,
 			self.baseStep,
+			'base',
 			z)
 
 	def addBaseSegments(self, baseExtrusionWidth):
@@ -504,6 +505,7 @@ class RaftSkein:
 			interfaceLayerThickness,
 			self.interfaceLayerThicknessOverLayerThickness,
 			self.interfaceStep,
+			'interface',
 			z)
 
 	def addInterfaceTables(self, interfaceExtrusionWidth):
@@ -540,6 +542,7 @@ class RaftSkein:
 		layerLayerThickness,
 		layerThicknessRatio,
 		step,
+		tagStart,
 		z):
 		'Add a layer from endpoints and raise the extrusion top.'
 		layerThicknessRatioSquared = layerThicknessRatio * layerThicknessRatio
@@ -550,6 +553,7 @@ class RaftSkein:
 		aroundWidth = 0.34321 * step
 		paths = euclidean.getPathsFromEndpoints(endpoints, 1.5 * step, aroundPixelTable, self.sharpestProduct, aroundWidth)
 		self.addLayerLine(z)
+		self.distanceFeedRate.addLine('(<%sLayer>)' % tagStart)
 		if self.operatingFlowRate != None:
 			self.addFlowRate(flowRateMultiplier * self.operatingFlowRate)
 		for path in paths:
@@ -557,6 +561,7 @@ class RaftSkein:
 			self.distanceFeedRate.addGcodeFromFeedRateThreadZ(feedRateMinute, simplifiedPath, self.travelFeedRateMinute, z)
 		self.extrusionTop += layerLayerThickness
 		self.addFlowRate(self.oldFlowRate)
+		self.distanceFeedRate.addLine('(</%sLayer>)' % tagStart)
 
 	def addLayerLine(self, z):
 		'Add the layer gcode line and close the last layer gcode block.'
@@ -697,7 +702,7 @@ class RaftSkein:
 		'Add support layer and temperature before the object layer.'
 		self.distanceFeedRate.addLine('(<supportLayer>)')
 		self.distanceFeedRate.addLinesSetAbsoluteDistanceMode(self.supportStartLines)
-		self.addTemperatureOrbits(endpoints, self.supportedLayersTemperature, z)
+		self.addTemperatureOrbits(endpoints, self.supportLayersTemperature, z)
 		aroundPixelTable = {}
 		aroundWidth = 0.34321 * self.interfaceStep
 		boundaryLoops = self.boundaryLayers[self.layerIndex].loops
@@ -716,7 +721,7 @@ class RaftSkein:
 		for path in paths:
 			self.distanceFeedRate.addGcodeFromFeedRateThreadZ(feedRateMinuteMultiplied, path, self.travelFeedRateMinute, z)
 		self.addFlowRate(self.oldFlowRate)
-		self.addTemperatureOrbits(endpoints, self.supportLayersTemperature, z)
+		self.addTemperatureOrbits(endpoints, self.supportedLayersTemperature, z)
 		self.distanceFeedRate.addLinesSetAbsoluteDistanceMode(self.supportEndLines)
 		self.distanceFeedRate.addLine('(</supportLayer>)')
 

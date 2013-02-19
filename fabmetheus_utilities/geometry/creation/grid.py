@@ -40,7 +40,7 @@ def getGeometryOutput(elementNode):
 	diameter = derivation.radius + derivation.radius
 	typeStringTwoCharacters = derivation.typeString.lower()[: 2]
 	typeStringFirstCharacter = typeStringTwoCharacters[: 1]
-	topRight = complex(derivation.demiwidth, derivation.demiheight)
+	topRight = derivation.inradius
 	loopsComplex = [euclidean.getSquareLoopWiddershins(-topRight, topRight)]
 	if len(derivation.target) > 0:
 		loopsComplex = euclidean.getComplexPaths(derivation.target)
@@ -152,13 +152,9 @@ def processElementNode(elementNode):
 class GridDerivation:
 	'Class to hold grid variables.'
 	def __init__(self, elementNode):
-		'Set defaults.'
-		self.inradius = lineation.getInradius(complex(10.0, 10.0), elementNode)
-		self.demiwidth = lineation.getFloatByPrefixBeginEnd(elementNode, 'demiwidth', 'width', self.inradius.real)
-		self.demiheight = lineation.getFloatByPrefixBeginEnd(elementNode, 'demiheight', 'height', self.inradius.imag)
+		self.inradius = lineation.getInradiusFirstByHeightWidth(complex(10.0, 10.0), elementNode)
 		self.density = evaluate.getEvaluatedFloat(0.2, elementNode, 'density')
-		self.radius = lineation.getComplexByPrefixBeginEnd(elementNode, 'elementRadius', 'elementDiameter', complex(1.0, 1.0))
-		self.radius = lineation.getComplexByPrefixBeginEnd(elementNode, 'radius', 'diameter', self.radius)
+		self.radius = lineation.getComplexByPrefixBeginEnd(elementNode, 'radius', 'diameter', complex(1.0, 1.0))
 		self.seed = evaluate.getEvaluatedInt(None, elementNode, 'seed')
 		self.target = evaluate.getTransformedPathsByKey([], elementNode, 'target')
 		self.typeMenuRadioStrings = 'hexagonal random rectangular'.split()

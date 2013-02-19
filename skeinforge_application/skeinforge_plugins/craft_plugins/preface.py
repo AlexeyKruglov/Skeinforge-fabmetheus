@@ -195,8 +195,8 @@ class PrefaceSkein:
 	def addToolSettingLines(self, pluginName):
 		"Add tool setting lines."
 		preferences = skeinforge_craft.getCraftPreferences(pluginName)
-		if skeinforge_craft.getCraftValue('Activate %s' % pluginName.capitalize(), preferences) != True:
-			return
+#		if skeinforge_craft.getCraftValue('Activate %s' % pluginName.capitalize(), preferences) != True:
+#			return
 		for preference in preferences:
 			valueWithoutReturn = str(preference.value).replace('\n', ' ').replace('\r', ' ')
 			if preference.name != 'WindowPosition' and not preference.name.startswith('Open File'):

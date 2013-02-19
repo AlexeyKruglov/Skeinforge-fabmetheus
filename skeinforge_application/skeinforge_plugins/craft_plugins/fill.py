@@ -119,7 +119,7 @@ Default is 1.5.
 Defines the ratio of the infill width over the layer height.  The higher the value the wider apart the infill will be and therefore the sparser the infill will be.
 
 ===Sharpest Angle===
-Default: 60 degrees
+Default: 63 degrees
 
 Defines the sharpest angle that a thread is allowed to make before it is separated into two threads. If 'Sharpest Angle' is too low, the extruder will stop and start often, slowing printing and putting more wear and tear on the extruder. If 'Sharpest Angle' is too high, then threads will almost double back on themselves, leading to bumps in the fill, and sometimes filament being dragged by the nozzle.
 
@@ -806,7 +806,7 @@ class FillRepository:
 		self.infillPerimeterOverlap = settings.FloatSpin().getFromValue( 0.0, 'Infill Perimeter Overlap (ratio):', self, 0.4, 0.15 )
 		self.infillSolidity = settings.FloatSpin().getFromValue( 0.04, 'Infill Solidity (ratio):', self, 0.3, 0.2 )
 		settings.LabelSeparator().getFromRepository(self)
-		self.sharpestAngle = settings.FloatSpin().getFromValue(50.0, 'Sharpest Angle (degrees):', self, 70.0, 60.0)
+		self.sharpestAngle = settings.FloatSpin().getFromValue(50.0, 'Sharpest Angle (degrees):', self, 70.0, 63.0)
 		self.solidSurfaceThickness = settings.IntSpin().getFromValue(0, 'Solid Surface Thickness (layers):', self, 5, 3)
 		self.startFromChoice = settings.MenuButtonDisplay().getFromName('Start From Choice:', self)
 		self.startFromLowerLeft = settings.MenuRadio().getFromMenuButtonDisplay(self.startFromChoice, 'Lower Left', self, True)

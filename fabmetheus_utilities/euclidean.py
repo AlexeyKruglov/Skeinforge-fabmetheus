@@ -42,6 +42,7 @@ __date__ = '$Date: 2008/21/04 $'
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 
+globalChannelRatio = 0.003 # a smaller ratio means a smoother edge with more segments
 globalGoldenAngle = 3.8832220774509332 # (math.sqrt(5.0) - 1.0) * math.pi
 globalGoldenRatio = 1.6180339887498948482045868 # math.sqrt(1.25) + 0.5
 globalTau = math.pi + math.pi # http://tauday.com/
@@ -882,7 +883,7 @@ def getHalfSimplifiedLoop( loop, radius, remainder ):
 	'Get the loop with half of the points inside the channel removed.'
 	if len(loop) < 2:
 		return loop
-	channelRadius = radius * .01
+	channelRadius = globalChannelRatio * radius
 	simplified = []
 	addIndex = 0
 	if remainder == 1:
@@ -899,7 +900,7 @@ def getHalfSimplifiedPath(path, radius, remainder):
 	'Get the path with half of the points inside the channel removed.'
 	if len(path) < 2:
 		return path
-	channelRadius = radius * .01
+	channelRadius = globalChannelRatio * radius
 	simplified = [path[0]]
 	for pointIndex in xrange(1, len(path) - 1):
 		point = path[pointIndex]
@@ -1275,6 +1276,8 @@ def getNormalWeighted(begin, center, end):
 
 def getNumberOfIntersectionsToLeft(loop, point):
 	'Get the number of intersections through the loop for the line going left.'
+	if point == None:
+		return 0
 	numberOfIntersectionsToLeft = 0
 	for pointIndex in xrange(len(loop)):
 		firstPointComplex = loop[pointIndex]

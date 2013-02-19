@@ -145,6 +145,12 @@ def getInradius(defaultInradius, elementNode):
 	defaultInradius = getComplexByPrefixes(elementNode, ['demisize', 'inradius'], defaultInradius)
 	return getComplexByMultiplierPrefix(elementNode, 2.0, 'size', defaultInradius)
 
+def getInradiusFirstByHeightWidth(defaultInradius, elementNode):
+	'Get inradius, by first checking for the width and height.'
+	demiheight = getFloatByPrefixBeginEnd(elementNode, 'demiheight', 'height', defaultInradius.imag)
+	demiwidth = getFloatByPrefixBeginEnd(elementNode, 'demiwidth', 'width', defaultInradius.real)
+	return getInradius(complex(demiwidth, demiheight), elementNode)
+
 def getMinimumRadius(beginComplexSegmentLength, endComplexSegmentLength, radius):
 	'Get minimum radius.'
 	return min(abs(radius), 0.5 * min(beginComplexSegmentLength, endComplexSegmentLength))

@@ -230,15 +230,15 @@ import os
 import sys
 
 
-# restore clip
-# multiple shell
-# voronoi average location intersection looped inset intercircles
+# move settings from alteration to distanceFeedRate
+# consolidate side loops for voronoi and sponge_slice, add boundary
 # check for last existing then remove unneeded fill code (getLastExistingFillLoops) from euclidean, add fill in penultimate loops, if there is no fill it should not use edge - skin should work
 # replace replace baseLayerThickness.. with baseLayerHeightMultiplier
 # change splodge to use volumeFraction
 # announce dwindle
 # announce fill sharpestAngle
 # announce inset volumeFraction
+# document announce skirt
 # announce splodge volumeFraction
 # announce statistic extrusion diameter gone
 # announce vectorwrite
@@ -261,6 +261,7 @@ import sys
 #
 #
 # retraction step leave
+# rename fill extra shells to stuff like Extra Base Shells
 # melt _extrusion
 # think about http://code.google.com/p/skeinarchiver/ and/or undo
 # getStrokeRadius default to edgeWidth
@@ -339,6 +340,7 @@ import sys
 # dovetail
 # maybe not getNewObject, getNew, addToBoolean
 # work out close and radius
+# maybe restore clip if the problem can be defined, the email said there was a problem leading to a ridge but there was no follow up
 # maybe have add function as well as append for list and string
 # maybe move and give geometryOutput to cube, cylinder, sphere
 #

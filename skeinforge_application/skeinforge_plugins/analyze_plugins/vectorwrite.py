@@ -12,6 +12,11 @@ http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Vectorwrite
 The default 'Activate Vectorwrite' checkbox is off.  When it is on, the functions described below will work when called from the skeinforge toolchain, when it is off, the functions will not be called from the toolchain.  The functions will still be called, whether or not the 'Activate Vectorwrite' checkbox is on, when vectorwrite is run directly.
 
 ==Settings==
+===Add Boundaries===
+Default is on.
+
+If 'Add Boundaries' is selected, the boundaries will be added in blue to the the scalable vector graphics output.
+
 ===Add Layer Template to SVG===
 Default is on.
 
@@ -203,6 +208,7 @@ class VectorwriteRepository:
 		self.activateVectorwrite = settings.BooleanSetting().getFromValue('Activate Vectorwrite', self, False )
 		self.fileNameInput = settings.FileNameInput().getFromFileName( [ ('Gcode text files', '*.gcode') ], 'Open File to Write Vector Graphics for', self, '')
 		self.openWikiManualHelpPage = settings.HelpPage().getOpenFromAbsolute('http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Vectorwrite')
+		self.addBoundaries = settings.BooleanSetting().getFromValue('Add Boundaries', self, True)
 		self.addLayerTemplateToSVG = settings.BooleanSetting().getFromValue('Add Layer Template to SVG', self, True)
 		self.addLoops = settings.BooleanSetting().getFromValue('Add Loops', self, True)
 		self.addPaths = settings.BooleanSetting().getFromValue('Add Paths', self, True)
@@ -335,7 +341,7 @@ class VectorwriteSkein:
 			self.thread = []
 		elif firstWord == '(</boundaryPerimeter>)':
 			self.boundaryLoop = None
-		elif firstWord == '(<boundaryPoint>':
+		elif firstWord == '(<boundaryPoint>' and self.repository.addBoundaries.value:
 			location = gcodec.getLocationFromSplitLine(None, splitLine)
 			if self.boundaryLoop == None:
 				self.boundaryLoop = []

@@ -132,6 +132,7 @@ class SkirtRepository:
 			fabmetheus_interpret.getGNUTranslatorGcodeFileTypeTuples(), 'Open File for Skirt', self, '')
 		self.openWikiManualHelpPage = settings.HelpPage().getOpenFromAbsolute('http://fabmetheus.crsndoo.com/wiki/index.php/Skeinforge_Skirt')
 		self.activateSkirt = settings.BooleanSetting().getFromValue('Activate Skirt', self, False)
+		self.baseShells = settings.IntSpin().getSingleIncrementFromValue(1, 'Base Shells (integer)', self, 10, 1)
 		self.convex = settings.BooleanSetting().getFromValue('Convex:', self, True)
 		self.gapOverEdgeWidth = settings.FloatSpin().getFromValue(1.0, 'Gap over Perimeter Width (ratio):', self, 5.0, 3.0)
 		self.layersTo = settings.IntSpin().getSingleIncrementFromValue(0, 'Layers To (index):', self, 912345678, 1)
@@ -176,7 +177,10 @@ class SkirtSkein:
 		oldTemperature = self.oldTemperatureInput
 		self.addTemperatureLineIfDifferent(self.skirtTemperature)
 		self.addFlowRate(self.skirtFlowRate)
-		for outsetLoop in self.outsetLoops:
+		outsetLoops = self.baseOutsetLoops
+		if self.layerIndex > 0:
+			outsetLoops = self.upperOutsetLoops
+		for outsetLoop in outsetLoops:
 			closedLoop = outsetLoop + [outsetLoop[0]]
 			self.distanceFeedRate.addGcodeFromFeedRateThreadZ(self.feedRateMinute, closedLoop, self.travelFeedRateMinute, z)
 		self.addFlowRate(self.oldFlowRate)
@@ -202,10 +206,15 @@ class SkirtSkein:
 		points += euclidean.getPointsByVerticalDictionary(self.edgeWidth, self.unifiedLoop.verticalDictionary)
 		loops = triangle_mesh.getDescendingAreaOrientedLoops(points, points, 2.5 * self.edgeWidth)
 		outerLoops = getOuterLoops(loops)
-		outsetLoops = intercircle.getInsetSeparateLoopsFromLoops(outerLoops, -self.skirtOutset)
-		self.outsetLoops = getOuterLoops(outsetLoops)
-		if self.repository.convex.value:
-			self.outsetLoops = [euclidean.getLoopConvex(euclidean.getConcatenatedList(self.outsetLoops))]
+		self.baseOutsetLoops = []
+		self.upperOutsetLoops = []
+		for shellIndex in xrange(self.repository.baseShells.value, 0, -1):
+			outsetLoops = intercircle.getInsetSeparateLoopsFromLoops(outerLoops, -self.skirtOutset - shellIndex * self.edgeWidth)
+			outsetLoops = getOuterLoops(outsetLoops)
+			if self.repository.convex.value:
+				outsetLoops = [euclidean.getLoopConvex(euclidean.getConcatenatedList(outsetLoops))]
+			self.baseOutsetLoops += outsetLoops
+			self.upperOutsetLoops = outsetLoops
 
 	def getCraftedGcode(self, gcodeText, repository):
 		'Parse gcode text and store the skirt gcode.'

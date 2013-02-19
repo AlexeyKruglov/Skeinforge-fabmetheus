@@ -166,7 +166,8 @@ class MultiplySkein:
 	def addLayer(self):
 		'Add multiplied layer to the output.'
 		self.addRemoveThroughLayer()
-		offset = self.centerOffset - self.arrayCenter - self.shapeCenter
+		if not self.repository.reverseSequenceEveryOddLayer.value:
+			self.rowIndex = 0
 		for rowIndex in xrange(self.repository.numberOfRows.value):
 			yRowOffset = float(rowIndex) * self.extentPlusSeparation.imag
 			if self.layerIndex % 2 == 1 and self.repository.reverseSequenceEveryOddLayer.value:
@@ -175,8 +176,7 @@ class MultiplySkein:
 				xColumnOffset = float(columnIndex) * self.extentPlusSeparation.real
 				if self.rowIndex % 2 == 1:
 					xColumnOffset = self.arrayExtent.real - xColumnOffset
-				elementOffset = complex(offset.real + xColumnOffset, offset.imag + yRowOffset)
-				self.addElement(elementOffset)
+				self.addElement(complex(xColumnOffset, yRowOffset) + self.offset)
 			self.rowIndex += 1
 		settings.printProgress(self.layerIndex, 'multiply')
 		if len(self.layerLines) > 1:
@@ -272,6 +272,7 @@ class MultiplySkein:
 		rowsMinusOne = self.numberOfRows - 1
 		self.arrayExtent = complex(self.extentPlusSeparation.real * columnsMinusOne, self.extentPlusSeparation.imag * rowsMinusOne)
 		self.arrayCenter = 0.5 * self.arrayExtent
+		self.offset = self.centerOffset - self.arrayCenter - self.shapeCenter
 
 
 def main():

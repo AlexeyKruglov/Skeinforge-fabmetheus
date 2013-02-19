@@ -215,6 +215,7 @@ class StatisticSkein:
 		self.extruderSpeed = None
 		self.extruderToggled = 0
 		self.feedRateMinute = 600.0
+		self.filamentDiameter = 3.0
 		self.layerHeight = 0.4
 		self.numberOfLines = 0
 		self.procedures = []
@@ -242,6 +243,8 @@ class StatisticSkein:
 			crossSectionArea *= self.volumeFraction
 		self.extrusionDiameter = math.sqrt(4.0 * crossSectionArea / math.pi)
 		volumeExtruded = 0.001 * crossSectionArea * self.totalDistanceExtruded
+		filamentCrossSectionArea = 0.25 * math.pi * self.filamentDiameter * self.filamentDiameter
+		filamentLength = volumeExtruded / filamentCrossSectionArea
 		mass = volumeExtruded / repository.density.value
 		machineTimeCost = repository.machineTime.value * self.totalBuildTime / 3600.0
 		materialCost = repository.material.value * mass
@@ -270,14 +273,15 @@ class StatisticSkein:
 		self.addLine( "Feed rate average is %s mm/s, (%s mm/min)." % ( euclidean.getThreeSignificantFigures( averageFeedRate ), euclidean.getThreeSignificantFigures( 60.0 * averageFeedRate ) ) )
 		self.addLine(' ')
 		self.addLine('Filament')
-		self.addLine( "Cross section area is %s mm2." % euclidean.getThreeSignificantFigures( crossSectionArea ) )
+		self.addLine('Cross section area is %s mm2.' % euclidean.getThreeSignificantFigures(crossSectionArea))
+		self.addLine('Filament length is %s m.' % euclidean.getThreeSignificantFigures(filamentLength))
 		self.addLine('Extrusion diameter is %s mm.' % euclidean.getThreeSignificantFigures(self.extrusionDiameter))
 		if self.volumeFraction != None:
 			self.addLine('Volume fraction is %s.' % euclidean.getThreeSignificantFigures(self.volumeFraction))
 		self.addLine(' ')
 		self.addLine('Material')
 		self.addLine( "Mass extruded is %s grams." % euclidean.getThreeSignificantFigures( 1000.0 * mass ) )
-		self.addLine( "Volume extruded is %s cc." % euclidean.getThreeSignificantFigures( volumeExtruded ) )
+		self.addLine('Volume extruded is %s cc.' % euclidean.getThreeSignificantFigures(volumeExtruded))
 		self.addLine(' ')
 		self.addLine('Meta')
 		self.addLine( "Text has %s lines and a size of %s KB." % ( self.numberOfLines, kilobytes ) )
@@ -384,10 +388,17 @@ class StatisticSkein:
 			self.procedures.append(splitLine[1])
 		elif firstWord == '(<profileName>':
 			self.profileName = line.replace('(<profileName>', '').replace('</profileName>)', '').strip()
+		elif firstWord == '(<setting>':
+			if len(splitLine) == 5:
+				if splitLine[1] == 'dimension' and splitLine[2] == 'Filament_Diameter_(mm):':
+					self.filamentDiameter = float(splitLine[3])
+					print(  self.filamentDiameter)
 		elif firstWord == '(<version>':
 			self.version = splitLine[1]
 		elif firstWord == '(<volumeFraction>':
 			self.volumeFraction = float(splitLine[1])
+		if line == '(<profileName>':
+			self.profileName = line.replace('(<profileName>', '').replace('</profileName>)', '').strip()
 
 
 def main():

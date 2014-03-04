@@ -247,7 +247,9 @@ def writeOutput(fileName, shouldAnalyze=True):
 	if repository.addExportSuffix.value:
 		fileNameSuffix += '_export'
 	gcodeText = gcodec.getGcodeFileText(fileName, '')
+	print "GCODEEEEE: " + gcodeText + "####"
 	procedures = skeinforge_craft.getProcedures('export', gcodeText)
+	print procedures
 	gcodeText = skeinforge_craft.getChainTextFromProcedures(fileName, procedures[: -1], gcodeText)
 	if gcodeText == '':
 		return None
@@ -266,6 +268,7 @@ def writeOutput(fileName, shouldAnalyze=True):
 		print('The penultimate file is saved as ' + archive.getSummarizedFileName(fileNamePenultimate))
 	exportGcode = getCraftedTextFromText(gcodeText, repository)
 	window = None
+	
 	if shouldAnalyze and repository.analyzeGcode.value:
 		window = skeinforge_analyze.writeOutput(fileName, fileNamePenultimate, fileNameSuffix, filePenultimateWritten, gcodeText)
 	replaceableExportGcode = None

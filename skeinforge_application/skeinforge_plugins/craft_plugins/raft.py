@@ -518,7 +518,7 @@ class RaftSkein :
 	def addLayerFromEndpoints(self,	endpoints,feedRateMultiplier,flowRateMultiplier,layerLayerThickness,layerThicknessRatio,step,z):
 		'Add a layer from endpoints and raise the extrusion top.'
 		layerThicknessRatioSquared = layerThicknessRatio * layerThicknessRatio
-		feedRateMinute = self.feedRateMinute * feedRateMultiplier / layerThicknessRatioSquared
+		feedRateMinute = self.feedRateMinute * feedRateMultiplier # / layerThicknessRatioSquared
 		if len(endpoints) < 1:
 			return
 		aroundPixelTable = {}
@@ -929,9 +929,10 @@ class RaftSkein :
 				self.objectNextLayersTemperature = float(splitLine[1])
 			elif firstWord == '(<orbitalFeedRatePerSecond>':
 				self.orbitalFeedRatePerSecond = float(splitLine[1])
-#			elif firstWord == '(<operatingFeedRatePerSecond>':
-#				self.operatingFeedRateMinute = None # 60.0 * float(splitLine[1])
-#				self.feedRateMinute = None # self.operatingFeedRateMinute
+			elif firstWord == '(<operatingFeedRatePerSecond>':
+				self.feedRateMinute = 60.0 * float(splitLine[1])
+				print "got raft feedrate=" + str(self.feedRateMinute)
+				
 			elif firstWord == '(<operatingFlowRate>':
 				self.operatingFlowRate = float(splitLine[1])
 				self.oldFlowRate = self.operatingFlowRate

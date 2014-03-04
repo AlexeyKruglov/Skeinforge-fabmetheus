@@ -247,9 +247,7 @@ def writeOutput(fileName, shouldAnalyze=True):
 	if repository.addExportSuffix.value:
 		fileNameSuffix += '_export'
 	gcodeText = gcodec.getGcodeFileText(fileName, '')
-	print "GCODEEEEE: " + gcodeText + "####"
 	procedures = skeinforge_craft.getProcedures('export', gcodeText)
-	print procedures
 	gcodeText = skeinforge_craft.getChainTextFromProcedures(fileName, procedures[: -1], gcodeText)
 	if gcodeText == '':
 		return None

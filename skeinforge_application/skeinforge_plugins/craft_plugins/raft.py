@@ -931,8 +931,6 @@ class RaftSkein :
 				self.orbitalFeedRatePerSecond = float(splitLine[1])
 			elif firstWord == '(<operatingFeedRatePerSecond>':
 				self.feedRateMinute = 60.0 * float(splitLine[1])
-				print "got raft feedrate=" + str(self.feedRateMinute)
-				
 			elif firstWord == '(<operatingFlowRate>':
 				self.operatingFlowRate = float(splitLine[1])
 				self.oldFlowRate = self.operatingFlowRate
